@@ -1,0 +1,26 @@
+Package: singleRcaptureExtra
+Title: What the Package Does (One Line, Title Case)
+Version: 0.0.0.9000
+Authors@R: 
+    c(person(given = "Piotr",
+             family = "Chlebicki",
+             role = c("aut", "cre"),
+             email = "piochl@st.amu.edu.pl"))
+Description: What the package does (one paragraph).
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+LazyData: yes
+RdMacros: mathjaxr
+URL: https://github.com/ncn-foreigners/singleRcaptureExtra
+BugReports: https://github.com/ncn-foreigners/singleRcaptureExtra/issues
+Depends: singleRcapture
+Imports: 
+    stats,
+    mathjaxr,
+    doParallel,
+    foreach,
+    parallel,
+    VGAM,
+    countreg
