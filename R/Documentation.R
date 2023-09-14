@@ -13,6 +13,5 @@ NULL
 #' TODO
 #' @details
 #' TODO
-#'
 #' @name foreignMethods
 NULL
