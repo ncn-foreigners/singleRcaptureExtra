@@ -3,9 +3,20 @@
 \name{foreignMethods}
 \alias{foreignMethods}
 \alias{estimatePopsize.vglm}
+\alias{estimatePopsize.vgam}
 \title{TODO}
 \usage{
-estimatePopsize.vglm(
+\method{estimatePopsize}{vglm}(
+  formula,
+  subset = NULL,
+  naAction = NULL,
+  popVar = c("analytic", "bootstrap"),
+  controlForeign = NULL,
+  derivFunc = NULL,
+  ...
+)
+
+\method{estimatePopsize}{vgam}(
   formula,
   subset = NULL,
   naAction = NULL,
