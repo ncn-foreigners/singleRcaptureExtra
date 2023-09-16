@@ -15,7 +15,8 @@ LazyData: yes
 RdMacros: mathjaxr
 URL: https://github.com/ncn-foreigners/singleRcaptureExtra
 BugReports: https://github.com/ncn-foreigners/singleRcaptureExtra/issues
-Depends: singleRcapture (>= 0.2.1)
+Depends: 
+    singleRcapture (>= 0.2.1)
 Imports: 
     stats,
     mathjaxr,

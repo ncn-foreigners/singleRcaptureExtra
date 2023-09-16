@@ -34,7 +34,8 @@ estimatePopsize.vglm <- function(formula,
       stop("estimatePopsize.vglm method is only for objects with family slots with possibility of type.fitted = prob0")
     }
   )
-  wg <- weights(formula, type = "prior")
+  wg <- formula@prior.weights
+  if (is.null(wg) | !length(wg)) wg <- rep(1, sizeObserved)
 
   POP <- switch (popVar,
     "analytic" = {

@@ -13,7 +13,7 @@
   subset = NULL,
   naAction = NULL,
   popVar = c("analytic", "bootstrap"),
-  controlCountreg = controlCountreg(),
+  controlCountreg = NULL,
   ...
 )
 

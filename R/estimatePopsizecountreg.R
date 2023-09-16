@@ -71,7 +71,7 @@ estimatePopsize.zerotrunc <- function(formula,
             weight = wg,
             deriv = 2,
             offset = offset
-          )(c(stats::coef(formula), log(zt_nb$theta))))
+          )(c(stats::coef(formula), log(formula$theta))))
         },
         Xvlm = X
       ))
@@ -127,7 +127,7 @@ estimatePopsize.zerotrunc <- function(formula,
           family   = family,
           formulas = formulas,
           beta     = if (formula$dist != "negbin") stats::coef(formula) else
-            c(stats::coef(formula), log(zt_nb$theta)),
+            c(stats::coef(formula), log(formula$theta)),
           weights  = wg,
           trcount  = trcount,
           numboot  = controlCountreg$B,
@@ -156,7 +156,7 @@ estimatePopsize.zerotrunc <- function(formula,
           family   = family,
           formulas = formulas,
           beta     = if (formula$dist != "negbin") stats::coef(formula) else
-            c(stats::coef(formula), log(zt_nb$theta)),
+            c(stats::coef(formula), log(formula$theta)),
           weights  = wg,
           trcount  = trcount,
           numboot  = controlCountreg$B,
