@@ -15,14 +15,14 @@ estimatePopsize.vglm <- function(formula,
                                  naAction = NULL,
                                  popVar   = c("analytic",
                                               "bootstrap"),
-                                 controlForeign = NULL,
+                                 controlVglm = NULL,
                                  derivFunc = NULL,
                                  ...) {
   if (missing(popVar)) popVar <- "analytic"
   sizeObserved <- nobs(formula)
-  # siglevel <- controlForeign$alpha
-  # trcount <- controlForeign$trcount
-  # numboot <- controlForeign$B
+  # siglevel <- controlVglm$alpha
+  # trcount <- controlVglm$trcount
+  # numboot <- controlVglm$B
   siglevel <- .05
   trcount <- 0
   numboot <- 500
@@ -137,7 +137,7 @@ estimatePopsize.vglm <- function(formula,
           variance = variation,
           confidenceInterval = confidenceInterval,
           boot = NULL,
-          control = controlForeign
+          control = controlVglm
         ),
         class = "popSizeEstResults"
       )},
@@ -175,14 +175,14 @@ estimatePopsize.vgam <- function(formula,
                                  naAction = NULL,
                                  popVar   = c("analytic",
                                               "bootstrap"),
-                                 controlForeign = NULL,
+                                 controlVglm = NULL,
                                  derivFunc = NULL,
                                  ...) {
   if (missing(popVar)) popVar <- "analytic"
   sizeObserved <- nobs(formula)
-  # siglevel <- controlForeign$alpha
-  # trcount <- controlForeign$trcount
-  # numboot <- controlForeign$B
+  # siglevel <- controlVglm$alpha
+  # trcount <- controlVglm$trcount
+  # numboot <- controlVglm$B
   siglevel <- .05
   trcount <- 0
   numboot <- 500
@@ -299,7 +299,7 @@ estimatePopsize.vgam <- function(formula,
           variance = variation,
           confidenceInterval = confidenceInterval,
           boot = NULL,
-          control = controlForeign
+          control = controlVglm
         ),
         class = "popSizeEstResults"
       )},

@@ -1,2 +1,2 @@
 # singleRcaptureExtra
-Small package with methods for VGAM, countreg
+Small package with methods for VGAM, countreg, lm
