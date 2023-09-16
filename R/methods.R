@@ -1,4 +1,7 @@
 #' @importFrom stats sd
+#' @importClassesFrom VGAM vglm
+#' @importClassesFrom VGAM vgam
+#' @importMethodsFrom VGAM summary
 #' @export
 summary.singleRforeign <- function(object,
                                    popSizeEst,
@@ -25,6 +28,8 @@ summary.singleRforeign <- function(object,
   )
 }
 
+#' @importClassesFrom VGAM vglm
+#' @importClassesFrom VGAM vgam
 #' @export
 print.summarysingleRforeign <- function(x,
                                         summaryForeign = TRUE,
@@ -82,13 +87,16 @@ print.summarysingleRforeign <- function(x,
 #' @importFrom stats df.residual
 #' @importFrom stats AIC
 #' @importFrom stats BIC
+#' @importFrom stats nobs
+#' @importClassesFrom VGAM vglm
+#' @importClassesFrom VGAM vgam
 #' @export
 print.singleRforeign <- function(x, ...) {
   cat("Call: ")
   print(x$call)
   cat("\nCoefficients:\n")
   print(coef(x$foreignObject))
-  cat("\nDegrees of Freedom:", x$foreignObject$df.null,
+  cat("\nDegrees of Freedom:", stats::nobs(x$foreignObject) - 1,
       "Total (i.e NULL);", df.residual(x$foreignObject),
       "Residual")
 
