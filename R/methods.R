@@ -48,7 +48,7 @@ print.summarysingleRforeign <- function(x,
     if (!is.null(x$skew)) "\n0 skewness is expected for normally distributed variable\n---",
     if (isTRUE(x$call$popVar == "bootstrap")) "\nBootstrap Std. Error " else "\nStd. Error ",
     sqrt(x$populationSize$variance), "\n",
-    (1 - x$control$alpha) * 100,
+    (1 - x$populationSize$control$alpha) * 100,
     "% CI for the population size:\n",
     sep = ""
   )

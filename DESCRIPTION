@@ -24,4 +24,5 @@ Imports:
     foreach,
     parallel,
     VGAM,
-    countreg
+    countreg,
+    VGAMdata

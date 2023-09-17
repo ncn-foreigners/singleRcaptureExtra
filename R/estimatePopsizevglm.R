@@ -8,6 +8,10 @@
 #' @importFrom stats qnorm
 #' @importFrom stats vcov
 #' @importFrom singleRcapture estimatePopsize
+#' @importFrom VGAMdata oapospoisson
+#' @importFrom VGAMdata oipospoisson
+#' @importFrom VGAM pospoisson
+#' @importFrom VGAM posnegbinomial
 #' @rdname foreignMethods
 #' @export
 estimatePopsize.vglm <- function(formula,
@@ -20,18 +24,37 @@ estimatePopsize.vglm <- function(formula,
                                  ...) {
   if (missing(popVar)) popVar <- "analytic"
   sizeObserved <- nobs(formula)
-  # siglevel <- controlVglm$alpha
+  # signlevel <- controlVglm$alpha
   # trcount <- controlVglm$trcount
   # numboot <- controlVglm$B
-  siglevel <- .05
+  signlevel <- .05
   trcount <- 0
   numboot <- 500
 
   ### Get try-catch for that
-  tryCatch(
-    expr = {PW <- fittedvlm(formula, type.fitted = "prob0")},
+  PW <- tryCatch(
+    expr = {fittedvlm(formula, type.fitted = "prob0")},
     error = function(e) {
-      stop("estimatePopsize.vglm method is only for objects with family slots with possibility of type.fitted = prob0")
+      if (formula@family@vfamily[1] == "oapospoisson") {
+        links <- (strsplit(formula@family@blurb[c(5, 7)], split = "\\(") |> unlist())[c(1,3)]
+        lambda <- VGAM::eta2theta(
+          formula@predictors[, c(FALSE, TRUE), drop = FALSE], links[2],
+          list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+               short = TRUE, tag = FALSE)
+        )
+
+        return(exp(-lambda) / (1 - lambda * exp(-lambda)))
+      } else if (formula@family@vfamily[1] == "oipospoisson") {
+        links <- (strsplit(formula@family@blurb[c(3, 5)], split = "\\(") |> unlist())[c(1,3)]
+        lambda <- VGAM::eta2theta(
+          formula@predictors[, c(FALSE, TRUE), drop = FALSE], links[2],
+          list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+               short = TRUE, tag = FALSE)
+        )
+        return(exp(-lambda))
+      } else {
+        stop("estimatePopsize.vglm method is only for objects with family slots with possibility of type.fitted = prob0 (and a few select ones)")
+      }
     }
   )
   wg <- formula@prior.weights
@@ -41,12 +64,46 @@ estimatePopsize.vglm <- function(formula,
     "analytic" = {
       N <- sum(wg / (1 - PW))
       if (is.null(derivFunc)) {
-        if (formula@family@vfamily[1] %in% c("oapoisson", "pospoisson",
-                                             "oipospoisson", "posnegbinomial",
-                                             "posbinomial", "oiposbinomial")) {
+        if (formula@family@vfamily[1] %in% c("oapospoisson", "pospoisson",
+                                             "oipospoisson", "posnegbinomial")) {
           derivFunc <- switch (formula@family@vfamily[1],
-            "oapoisson" = function(eta) {
+            "oapospoisson" = function(eta) {
+              links <- (strsplit(formula@family@blurb[c(5, 7)], split = "\\(") |> unlist())[c(1,3)]
+              TFvec <- c(TRUE, FALSE)
 
+              lambda <- VGAM::eta2theta(
+                eta[, !TFvec, drop = FALSE], links[2],
+                list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+                     short = TRUE, tag = FALSE)
+              )
+              pobs1 <- VGAM::eta2theta(
+                eta[, TFvec, drop = FALSE], links[1],
+                list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+                     short = TRUE, tag = FALSE)
+              )
+
+              dlambda.deta <- VGAM::dtheta.deta(
+                lambda, links[2], earg = list(
+                  theta = NULL, bvalue = NULL,
+                  inverse = FALSE, deriv = 0,
+                  short = TRUE, tag = FALSE
+                )
+              )
+
+              dpobs1.deta <- VGAM::dtheta.deta(
+                pobs1, links[1], earg = list(
+                  theta = NULL,
+                  bvalue = NULL, inverse = FALSE,
+                  deriv = 0, short = TRUE,
+                  tag = FALSE
+                )
+              )
+
+              ### TODO:: this is a terrible way of ordering, fix it !!!!
+              as.vector(t(
+                cbind(dpobs1.deta, dlambda.deta) *
+                cbind(rep(0, NROW(eta)), (exp(lambda) - 1) / (exp(lambda) - lambda - 1) ^ 2)
+              ))
             },
             "pospoisson" = function(eta) {
               links <- (strsplit(formula@family@blurb[c(3)], split = "\\(") |> unlist())[c(1)]
@@ -62,11 +119,27 @@ estimatePopsize.vglm <- function(formula,
                   short = TRUE, tag = FALSE
                 )
               )
-              # lambda created by eval
+
               (exp(lambda) / (exp(lambda) - 1) ^ 2) * dlambda.deta
             },
             "oipospoisson" = function(eta) {
+              links <- (strsplit(formula@family@blurb[c(3, 5)], split = "\\(") |> unlist())[c(1,3)]
+              TFvec <- c(TRUE, FALSE)
 
+              lambda <- VGAM::eta2theta(
+                eta[, !TFvec, drop = FALSE], links[2],
+                list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+                     short = TRUE, tag = FALSE)
+              )
+              dlambda.deta <- VGAM::dtheta.deta(
+                lambda, links[2], earg = list(
+                  theta = NULL, bvalue = NULL,
+                  inverse = FALSE, deriv = 0,
+                  short = TRUE, tag = FALSE
+                )
+              )
+
+              as.vector(t(cbind(rep(0, NROW(eta)), (exp(lambda) / (exp(lambda) - 1) ^ 2) * dlambda.deta)))
             },
             "posnegbinomial" = function(eta) {
               links <- (strsplit(formula@family@blurb[c(3,5)], split = "\\(") |> unlist())[c(1,3)]
@@ -99,16 +172,11 @@ estimatePopsize.vglm <- function(formula,
                   tag = FALSE
                 )
               )
+
               tmp1 <- size / (lambda + size)
-              c(-size*tmp1^size/((lambda+size)*(tmp1^size-1)^2),
+              as.vector(t(cbind(-size*tmp1^size/((lambda+size)*(tmp1^size-1)^2),
                 tmp1^size*((size + lambda)*log(tmp1)+lambda)/((lambda + size)*(tmp1^size-1)^2)) *
-                c(dlambda.deta, dsize.deta)
-            },
-            "posbinomial" = function(eta) {
-
-            },
-            "oiposbinomial" = function(eta) {
-
+                cbind(dlambda.deta, dsize.deta)))
             }
           )
         } else {
@@ -116,12 +184,18 @@ estimatePopsize.vglm <- function(formula,
         }
       }
 
+      ### TODO:: vcov for oa/oi pospoisson is different in singleRcapture
       dd <- t(rep(wg, formula@family@infos()$M1) * derivFunc(formula@predictors)) %*% model.matrix(formula, type = "vlm")
+      print(dd)
 
       variation <- sum(wg * PW / (1 - PW)^2)
-      variation <- variation + dd %*% vcov(formula) %*% t(dd)
+      vc <- vcov(formula)
 
-      sc <- qnorm(p = 1 - siglevel / 2)
+      print(dd %*% vc %*% t(dd))
+      print(variation)
+      variation <- variation + dd %*% vc %*% t(dd)
+
+      sc <- qnorm(p = 1 - signlevel / 2)
       sd <- sqrt(variation)
       G <- exp(sc * sqrt(log(1 + variation / ((N - sizeObserved) ^ 2))))
 
@@ -138,7 +212,7 @@ estimatePopsize.vglm <- function(formula,
           variance = variation,
           confidenceInterval = confidenceInterval,
           boot = NULL,
-          control = controlVglm
+          control = list(alpha = signlevel)
         ),
         class = "popSizeEstResults"
       )},
@@ -169,6 +243,10 @@ estimatePopsize.vglm <- function(formula,
 #' @importFrom stats qnorm
 #' @importFrom stats vcov
 #' @importFrom singleRcapture estimatePopsize
+#' @importFrom VGAMdata oapospoisson
+#' @importFrom VGAMdata oipospoisson
+#' @importFrom VGAM pospoisson
+#' @importFrom VGAM posnegbinomial
 #' @rdname foreignMethods
 #' @export
 estimatePopsize.vgam <- function(formula,
@@ -181,10 +259,10 @@ estimatePopsize.vgam <- function(formula,
                                  ...) {
   if (missing(popVar)) popVar <- "analytic"
   sizeObserved <- nobs(formula)
-  # siglevel <- controlVglm$alpha
+  # signlevel <- controlVglm$alpha
   # trcount <- controlVglm$trcount
   # numboot <- controlVglm$B
-  siglevel <- .05
+  signlevel <- .05
   trcount <- 0
   numboot <- 500
 
@@ -192,7 +270,26 @@ estimatePopsize.vgam <- function(formula,
   tryCatch(
     expr = {PW <- fittedvlm(formula, type.fitted = "prob0")},
     error = function(e) {
-      stop("estimatePopsize.vgam method is only for objects with family slots with possibility of type.fitted = prob0")
+      if (formula@family@vfamily[1] == "oapospoisson") {
+        links <- (strsplit(formula@family@blurb[c(5, 7)], split = "\\(") |> unlist())[c(1,3)]
+        lambda <- VGAM::eta2theta(
+          formula@predictors[, c(FALSE, TRUE), drop = FALSE], links[2],
+          list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+               short = TRUE, tag = FALSE)
+        )
+
+        return(exp(-lambda) / (1 - lambda * exp(-lambda)))
+      } else if (formula@family@vfamily[1] == "oipospoisson") {
+        links <- (strsplit(formula@family@blurb[c(3, 5)], split = "\\(") |> unlist())[c(1,3)]
+        lambda <- VGAM::eta2theta(
+          formula@predictors[, c(FALSE, TRUE), drop = FALSE], links[2],
+          list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+               short = TRUE, tag = FALSE)
+        )
+        return(exp(-lambda))
+      } else {
+        stop("estimatePopsize.vglm method is only for objects with family slots with possibility of type.fitted = prob0 (and a few select ones)")
+      }
     }
   )
   wg <- formula@prior.weights
@@ -208,7 +305,41 @@ estimatePopsize.vgam <- function(formula,
                                              "posbinomial", "oiposbinomial")) {
           derivFunc <- switch (formula@family@vfamily[1],
             "oapoisson" = function(eta) {
+              links <- (strsplit(formula@family@blurb[c(5, 7)], split = "\\(") |> unlist())[c(1,3)]
+              TFvec <- c(TRUE, FALSE)
 
+              lambda <- VGAM::eta2theta(
+                eta[, !TFvec, drop = FALSE], links[2],
+                list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+                     short = TRUE, tag = FALSE)
+              )
+              pobs1 <- VGAM::eta2theta(
+                eta[, TFvec, drop = FALSE], links[1],
+                list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+                     short = TRUE, tag = FALSE)
+              )
+
+              dlambda.deta <- VGAM::dtheta.deta(
+                lambda, links[2], earg = list(
+                  theta = NULL, bvalue = NULL,
+                  inverse = FALSE, deriv = 0,
+                  short = TRUE, tag = FALSE
+                )
+              )
+
+              dpobs1.deta <- VGAM::dtheta.deta(
+                pobs1, links[1], earg = list(
+                  theta = NULL,
+                  bvalue = NULL, inverse = FALSE,
+                  deriv = 0, short = TRUE,
+                  tag = FALSE
+                )
+              )
+
+              as.vector(t(
+                cbind(dpobs1.deta, dlambda.deta) *
+                  cbind(rep(0, NROW(eta)), (exp(lambda) - 1) / (exp(lambda) - lambda - 1) ^ 2)
+              ))
             },
             "pospoisson" = function(eta) {
               links <- (strsplit(formula@family@blurb[c(3)], split = "\\(") |> unlist())[c(1)]
@@ -224,11 +355,26 @@ estimatePopsize.vgam <- function(formula,
                   short = TRUE, tag = FALSE
                 )
               )
-              # lambda created by eval
               (exp(lambda) / (exp(lambda) - 1) ^ 2) * dlambda.deta
             },
             "oipospoisson" = function(eta) {
+              links <- (strsplit(formula@family@blurb[c(3, 5)], split = "\\(") |> unlist())[c(1,3)]
+              TFvec <- c(TRUE, FALSE)
 
+              lambda <- VGAM::eta2theta(
+                eta[, !TFvec, drop = FALSE], links[2],
+                list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+                     short = TRUE, tag = FALSE)
+              )
+              dlambda.deta <- VGAM::dtheta.deta(
+                lambda, links[2], earg = list(
+                  theta = NULL, bvalue = NULL,
+                  inverse = FALSE, deriv = 0,
+                  short = TRUE, tag = FALSE
+                )
+              )
+
+              as.vector(t(cbind(rep(0, NROW(eta)), (exp(lambda) / (exp(lambda) - 1) ^ 2) * dlambda.deta)))
             },
             "posnegbinomial" = function(eta) {
               links <- (strsplit(formula@family@blurb[c(3,5)], split = "\\(") |> unlist())[c(1,3)]
@@ -262,15 +408,11 @@ estimatePopsize.vgam <- function(formula,
                 )
               )
               tmp1 <- size / (lambda + size)
-              c(-size*tmp1^size/((lambda+size)*(tmp1^size-1)^2),
-                tmp1^size*((size + lambda)*log(tmp1)+lambda)/((lambda + size)*(tmp1^size-1)^2)) *
-                c(dlambda.deta, dsize.deta)
-            },
-            "posbinomial" = function(eta) {
-
-            },
-            "oiposbinomial" = function(eta) {
-
+              as.vector(t(
+                cbind(-size*tmp1^size/((lambda+size)*(tmp1^size-1)^2),
+                      tmp1^size*((size + lambda)*log(tmp1)+lambda)/((lambda + size)*(tmp1^size-1)^2)) *
+                  cbind(dlambda.deta, dsize.deta)
+              ))
             }
           )
         } else {
@@ -283,7 +425,7 @@ estimatePopsize.vgam <- function(formula,
       variation <- sum(wg * PW / (1 - PW)^2)
       variation <- variation + dd %*% vcov(formula) %*% t(dd)
 
-      sc <- qnorm(p = 1 - siglevel / 2)
+      sc <- qnorm(p = 1 - signlevel / 2)
       sd <- sqrt(variation)
       G <- exp(sc * sqrt(log(1 + variation / ((N - sizeObserved) ^ 2))))
 
@@ -300,7 +442,7 @@ estimatePopsize.vgam <- function(formula,
           variance = variation,
           confidenceInterval = confidenceInterval,
           boot = NULL,
-          control = controlVglm
+          control = list(alpha = signlevel)
         ),
         class = "popSizeEstResults"
       )},

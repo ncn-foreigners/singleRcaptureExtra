@@ -22,8 +22,8 @@ estimatePopsize.zerotrunc <- function(formula,
 
   sizeObserved <- stats::nobs(formula)
   eta <- cbind(as.numeric(log(predict(formula, type = "count"))))
-  siglevel <- controlCountreg$alpha
-  sc <- qnorm(p = 1 - siglevel / 2)
+  signlevel <- controlCountreg$alpha
+  sc <- qnorm(p = 1 - signlevel / 2)
 
   if (formula$dist == "negbin") {
     eta <- cbind(eta, log(formula$theta))
@@ -93,7 +93,8 @@ estimatePopsize.zerotrunc <- function(formula,
           pointEstimate = N,
           variance = variation,
           confidenceInterval = confidenceInterval,
-          boot = if (isTRUE(controlCountreg$keepbootStat)) strappedStatistic else NULL
+          boot = if (isTRUE(controlCountreg$keepbootStat)) strappedStatistic else NULL,
+          control = list(alpha = signlevel)
         ),
         class = "popSizeEstResults"
       )
@@ -191,8 +192,8 @@ estimatePopsize.zerotrunc <- function(formula,
       sd <- sqrt(variation)
       if (controlCountreg$confType == "percentilic") {
         confidenceInterval <- stats::quantile(strappedStatistic,
-                                              c(siglevel / 2,
-                                                1 - siglevel / 2))
+                                              c(signlevel / 2,
+                                                1 - signlevel / 2))
         names(confidenceInterval) <- c("lowerBound", "upperBound")
       } else if (controlCountreg$confType == "normal") {
         G <- exp(sc * sqrt(log(1 + variation / ((N - sizeObserved) ^ 2))))
@@ -207,8 +208,8 @@ estimatePopsize.zerotrunc <- function(formula,
         )))
       } else if (controlCountreg$confType == "basic") {
         confidenceInterval <- 2 * N - stats::quantile(strappedStatistic,
-                                                      c(1 - siglevel / 2,
-                                                        siglevel / 2))
+                                                      c(1 - signlevel / 2,
+                                                        signlevel / 2))
         names(confidenceInterval) <- c("lowerBound", "upperBound")
       }
 
@@ -217,7 +218,8 @@ estimatePopsize.zerotrunc <- function(formula,
           pointEstimate = N,
           variance = variation,
           confidenceInterval = confidenceInterval,
-          boot = if (isTRUE(controlCountreg$keepbootStat)) strappedStatistic else NULL
+          boot = if (isTRUE(controlCountreg$keepbootStat)) strappedStatistic else NULL,
+          control = list(alpha = signlevel)
         ),
         class = "popSizeEstResults"
       )
