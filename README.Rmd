@@ -1,0 +1,72 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# singleRcaptureExtra
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+An expention of `singleRcapture` package to handle fitted object from other R 
+packages with zero truncated regression capabilities (and in the future the same
+for ratio regression models)
+
+### Quick demo
+
+Utilising additive models when effect is non linear:
+
+```{r VGAM}
+library(VGAM)
+library(singleRcaptureExtra)
+set.seed(123)
+x <- rnorm(n = 1000)
+y <- rpois(n = 1000, lambda = exp(-1 + cos(x)))
+data <- data.frame(y = y, x = x)
+data <- data[data$y > 0, ]
+
+additiveModel <- vgam(y ~ s(x, df = 3), data = data, family = pospoisson())
+
+summary(estimatePopsize(additiveModel))
+```
+
+We see that `1000` is well with confidence intervals and that estimates for `x` are approximately correct:
+
+```{r plotVGAM}
+plotvgam(additiveModel, data)
+```
+with the actual curve being:
+```{r curve}
+curve(cos, from = min(x), to = max(x))
+```
+
+Utilising popular `countreg` package:
+```{r countreg}
+library(countreg)
+model <- zerotrunc(
+  formula = capture ~ gender + age + nation, 
+  data = netherlandsimmigrant, 
+  dist = "poisson"
+)
+summary(estimatePopsize(model))
+```
+
+compare with `singleRcapture:`
+```{r singleRcapture}
+model <- estimatePopsize(
+  formula = capture ~ gender + age + nation, 
+  data = netherlandsimmigrant, 
+  model = singleRcapture::ztpoisson
+)
+summary(model)
+```

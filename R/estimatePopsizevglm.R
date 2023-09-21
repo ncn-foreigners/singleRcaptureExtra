@@ -186,13 +186,13 @@ estimatePopsize.vglm <- function(formula,
 
       ### TODO:: vcov for oa/oi pospoisson is different in singleRcapture
       dd <- t(rep(wg, formula@family@infos()$M1) * derivFunc(formula@predictors)) %*% model.matrix(formula, type = "vlm")
-      print(dd)
+      #print(dd)
 
       variation <- sum(wg * PW / (1 - PW)^2)
       vc <- vcov(formula)
 
-      print(dd %*% vc %*% t(dd))
-      print(variation)
+      #print(dd %*% vc %*% t(dd))
+      #print(variation)
       variation <- variation + dd %*% vc %*% t(dd)
 
       sc <- qnorm(p = 1 - signlevel / 2)
@@ -459,6 +459,6 @@ estimatePopsize.vgam <- function(formula,
       sizeObserved   = sizeObserved,
       populationSize = POP
     ),
-    class = c("singleRforeign", "singleRStaticCountData", "singleR")
+    class = c("singleRadditive", "singleRforeign", "singleRStaticCountData", "singleR")
   )
 }

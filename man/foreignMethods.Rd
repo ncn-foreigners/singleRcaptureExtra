@@ -46,11 +46,13 @@
 
 \item{popVar}{A}
 
+\item{controlCountreg}{A}
+
 \item{...}{A}
 
-\item{derivFunc}{A}
+\item{controlVglm}{A}
 
-\item{controlForeign}{A}
+\item{derivFunc}{A}
 }
 \description{
 TODO

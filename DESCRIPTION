@@ -1,5 +1,5 @@
 Package: singleRcaptureExtra
-Title: What the Package Does (One Line, Title Case)
+Title: Extension of singleRcapture capabilities to other regression fitting packages
 Version: 0.0.0.9000
 Authors@R: 
     c(person(given = "Piotr",
@@ -26,3 +26,4 @@ Imports:
     VGAM,
     countreg,
     VGAMdata
+Suggests: tinytest

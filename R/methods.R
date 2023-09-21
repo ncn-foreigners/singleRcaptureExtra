@@ -1,7 +1,18 @@
+#' @title AAA
+#' @description
+#' AA
+#' @details
+#' aa
+#'
+#' @param object a
+#' @param popSizeEst a
+#' @param ... a
+#'
 #' @importFrom stats sd
 #' @importClassesFrom VGAM vglm
 #' @importClassesFrom VGAM vgam
 #' @importMethodsFrom VGAM summary
+#' @method summary singleRforeign
 #' @export
 summary.singleRforeign <- function(object,
                                    popSizeEst,
@@ -108,4 +119,93 @@ print.singleRforeign <- function(x, ...) {
   print(x$populationSize)
 
   invisible(x)
+}
+
+#### TODO::
+## - redoPopEstimation
+## - stratifyPopsize
+## - simulate (with truncared and usual)
+## - dfpopsize
+## - marginalFreq (make it a method in singleRcapture)
+
+
+#' AA
+#'
+#' @param model a
+#' @param cores a
+#' @param ... b
+#' @importFrom singleRcapture dfpopsize
+#' @method dfpopsize singleRadditive
+#' @return a
+#' @export
+dfpopsize.singleRadditive <- function(model,
+                                      cores = 1L,
+                                      ...) {
+  # add cores
+  tryCatch(
+    mf <- eval(model$foreignObject@call$data),
+    error = function(e) {
+      stop("Call to data object in dfpopsize failed")
+    }
+  )
+
+  cll <- model$foreignObject@call
+
+  if (cores > 1) {
+    cl <- parallel::makeCluster(cores)
+    doParallel::registerDoParallel(cl)
+    on.exit(parallel::stopCluster(cl))
+
+    res <- foreach::`%dopar%`(
+      obj = foreach::foreach(
+        k = 1:NROW(mf),
+        .combine = c,
+        ## TODO:: figure out something that requires less maintenance
+        .packages = c("VGAM", "singleRcapture"),
+        .export = c("estimatePopsize.vgam")
+      ),
+      ex = {
+        print(cll)
+        dd <- mf[-k, , drop = FALSE]
+        cll$data <- as.symbol("dd")
+        est <- eval(cll, envir = environment())
+        estimatePopsize(est)$populationSize$pointEstimate
+      }
+    )
+  } else {
+    res <- vector(mode = "numeric", length = as.integer(NROW(mf)))
+
+    for (k in 1:NROW(mf)) {
+      dd <- mf[-k, , drop = FALSE]
+      cll$data <- as.symbol("dd")
+      est <- eval(cll, envir = environment())
+      res[k] <- estimatePopsize(est)$populationSize$pointEstimate
+    }
+  }
+
+  model$populationSize$pointEstimate - res
+}
+
+#' AAA
+#'
+#' @param model a
+#' @param dfbeta a
+#' @param ... a
+#'
+#' @importFrom singleRcapture dfpopsize
+#' @method dfpopsize singleRforeign
+#' @return a
+#' @export
+dfpopsize.singleRforeign <- function(model,
+                                     dfbeta = NULL,
+                                     ...) {
+  if (is.null(dfbeta)) dfbeta <- dfbeta(model, ...)
+
+  X <- model.frame(model)
+  y <- model.response(X)
+
+  for (variable in vector) {
+
+  }
+
 }

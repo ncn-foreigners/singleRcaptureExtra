@@ -6,7 +6,8 @@ NULL
 #' @param subset A
 #' @param naAction A
 #' @param popVar A
-#' @param controlForeign A
+#' @param controlCountreg A
+#' @param controlVglm A
 #' @param derivFunc A
 #' @param ... A
 #' @description
