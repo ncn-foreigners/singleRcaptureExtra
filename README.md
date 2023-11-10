@@ -86,6 +86,58 @@ curve(cos, from = min(x), to = max(x))
 
 <img src="man/figures/README-curve-1.png" width="100%" />
 
+We also allow bootstrap methods:
+
+``` r
+x <- rnorm(n = 1000)
+y <- rpois(n = 1000, lambda = exp(-1 + x))
+m1 <- vglm(y ~ x, data = data, family = pospoisson())
+summary(estimatePopsize(m1, popVar = "bootstrap"))
+```
+
+<img src="man/figures/README-VGAMboot-1.png" width="100%" />
+
+    #> 
+    #> Call:
+    #> estimatePopsize.vglm(formula = m1, popVar = "bootstrap")
+    #> 
+    #> -----------------------
+    #> Population size estimation results: 
+    #> Point estimate 933.535
+    #> Observed proportion: 54.3% (N obs = 507)
+    #> Boostrap sample skewness: 0.1734202
+    #> 0 skewness is expected for normally distributed variable
+    #> ---
+    #> Bootstrap Std. Error 48.13169
+    #> 95% CI for the population size:
+    #> lowerBound upperBound 
+    #>   845.2718  1029.8236 
+    #> 95% CI for the share of observed population:
+    #> lowerBound upperBound 
+    #>   49.23173   59.98071 
+    #> 
+    #> -------------------------------
+    #> -- Summary of foreign object --
+    #> -------------------------------
+    #> 
+    #> Call:
+    #> vglm(formula = y ~ x, family = pospoisson(), data = data)
+    #> 
+    #> Coefficients: 
+    #>             Estimate Std. Error z value Pr(>|z|)    
+    #> (Intercept) -0.24058    0.06322  -3.806 0.000141 ***
+    #> x           -0.06255    0.07587  -0.825 0.409655    
+    #> ---
+    #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    #> 
+    #> Name of linear predictor: loglink(lambda) 
+    #> 
+    #> Log-likelihood: -449.4492 on 505 degrees of freedom
+    #> 
+    #> Number of Fisher scoring iterations: 5 
+    #> 
+    #> No Hauck-Donner effect found in any of the estimates
+
 Utilising popular `countreg` package:
 
 ``` r
@@ -191,7 +243,7 @@ summary(model)
 #> Residual deviance: 1128.553
 #> 
 #> Log-likelihood: -848.4504 on 1872 Degrees of freedom 
-#> Number of calls to log-likelihood function: 8
+#> Number of iterations: 8
 #> -----------------------
 #> Population size estimation results: 
 #> Point estimate 12690.35
@@ -206,3 +258,8 @@ summary(model)
 #> normal     10.332927   26.16037
 #> logNormal   9.534281   22.29793
 ```
+
+## Funding
+
+Work on this package is supported by the the National Science Center,
+OPUS 22 grant no. 2020/39/B/HS4/00941.

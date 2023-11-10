@@ -50,6 +50,14 @@ with the actual curve being:
 curve(cos, from = min(x), to = max(x))
 ```
 
+We also allow bootstrap methods:
+```{r VGAMboot}
+x <- rnorm(n = 1000)
+y <- rpois(n = 1000, lambda = exp(-1 + x))
+m1 <- vglm(y ~ x, data = data, family = pospoisson())
+summary(estimatePopsize(m1, popVar = "bootstrap"))
+```
+
 Utilising popular `countreg` package:
 ```{r countreg}
 library(countreg)
@@ -70,3 +78,9 @@ model <- estimatePopsize(
 )
 summary(model)
 ```
+
+
+
+## Funding
+
+Work on this package is supported by the the National Science Center, OPUS 22 grant no. 2020/39/B/HS4/00941.   

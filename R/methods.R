@@ -207,5 +207,4 @@ dfpopsize.singleRforeign <- function(model,
   for (variable in vector) {
 
   }
-
 }
