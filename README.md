@@ -21,6 +21,8 @@ library(VGAM)
 #> Loading required package: splines
 library(singleRcaptureExtra)
 #> Loading required package: singleRcapture
+#> Warning: replacing previous import 'VGAM::coef' by 'stats::coef' when loading
+#> 'singleRcaptureExtra'
 set.seed(123)
 x <- rnorm(n = 1000)
 y <- rpois(n = 1000, lambda = exp(-1 + cos(x)))
@@ -47,27 +49,6 @@ summary(estimatePopsize(additiveModel))
 #>           lowerBound upperBound
 #> normal      45.77849   56.93691
 #> logNormal   45.26860   56.21660
-#> 
-#> -------------------------------
-#> -- Summary of foreign object --
-#> -------------------------------
-#> 
-#> Call:
-#> vgam(formula = y ~ s(x, df = 3), family = pospoisson(), data = data)
-#> 
-#> Name of additive predictor: loglink(lambda) 
-#> 
-#> Dispersion Parameter for pospoisson family:   1
-#> 
-#> Log-likelihood: -438.9821 on 503.424 degrees of freedom
-#> 
-#> Number of Fisher scoring iterations:  7 
-#> 
-#> DF for Terms and Approximate Chi-squares for Nonparametric Effects
-#> 
-#>              Df Npar Df Npar Chisq     P(Chi)
-#> (Intercept)   1                              
-#> s(x, df = 3)  1     1.6    18.1147 6.0695e-05
 ```
 
 We see that `1000` is well with confidence intervals and that estimates
@@ -92,53 +73,39 @@ We also allow bootstrap methods:
 x <- rnorm(n = 1000)
 y <- rpois(n = 1000, lambda = exp(-1 + x))
 m1 <- vglm(y ~ x, data = data, family = pospoisson())
-summary(estimatePopsize(m1, popVar = "bootstrap"))
+singleRm1 <- estimatePopsize(m1, popVar = "bootstrap")
+summary(singleRm1)
+#> 
+#> Call:
+#> estimatePopsize.vglm(formula = m1, popVar = "bootstrap")
+#> 
+#> -----------------------
+#> Population size estimation results: 
+#> Point estimate 933.535
+#> Observed proportion: 54.3% (N obs = 507)
+#> Boostrap sample skewness: 0.1734202
+#> 0 skewness is expected for normally distributed variable
+#> ---
+#> Bootstrap Std. Error 48.13169
+#> 95% CI for the population size:
+#> lowerBound upperBound 
+#>   845.2718  1029.8236 
+#> 95% CI for the share of observed population:
+#> lowerBound upperBound 
+#>   49.23173   59.98071
 ```
 
-<img src="man/figures/README-VGAMboot-1.png" width="100%" />
+The `plots` method that is available for native `singleRcapture` object
+are also (being) developed for `singleRcaptureExtra` objects
+(`singleRforeign` class)
 
-    #> 
-    #> Call:
-    #> estimatePopsize.vglm(formula = m1, popVar = "bootstrap")
-    #> 
-    #> -----------------------
-    #> Population size estimation results: 
-    #> Point estimate 933.535
-    #> Observed proportion: 54.3% (N obs = 507)
-    #> Boostrap sample skewness: 0.1734202
-    #> 0 skewness is expected for normally distributed variable
-    #> ---
-    #> Bootstrap Std. Error 48.13169
-    #> 95% CI for the population size:
-    #> lowerBound upperBound 
-    #>   845.2718  1029.8236 
-    #> 95% CI for the share of observed population:
-    #> lowerBound upperBound 
-    #>   49.23173   59.98071 
-    #> 
-    #> -------------------------------
-    #> -- Summary of foreign object --
-    #> -------------------------------
-    #> 
-    #> Call:
-    #> vglm(formula = y ~ x, family = pospoisson(), data = data)
-    #> 
-    #> Coefficients: 
-    #>             Estimate Std. Error z value Pr(>|z|)    
-    #> (Intercept) -0.24058    0.06322  -3.806 0.000141 ***
-    #> x           -0.06255    0.07587  -0.825 0.409655    
-    #> ---
-    #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    #> 
-    #> Name of linear predictor: loglink(lambda) 
-    #> 
-    #> Log-likelihood: -449.4492 on 505 degrees of freedom
-    #> 
-    #> Number of Fisher scoring iterations: 5 
-    #> 
-    #> No Hauck-Donner effect found in any of the estimates
+``` r
+plot(singleRm1, plotType = "bootHist")
+```
 
-Utilising popular `countreg` package:
+<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
+
+Utilising popular `countreg` package (compare with `singleRcapture`):
 
 ``` r
 library(countreg)
@@ -157,7 +124,9 @@ model <- zerotrunc(
   data = netherlandsimmigrant, 
   dist = "poisson"
 )
-summary(estimatePopsize(model))
+print(summary(estimatePopsize(model)), 
+      # Print summary of foreign object (works for all methods)
+      summaryForeign = TRUE)
 #> 
 #> Call:
 #> estimatePopsize.zerotrunc(formula = model)
@@ -203,11 +172,7 @@ summary(estimatePopsize(model))
 #> 
 #> Number of iterations in BFGS optimization: 30 
 #> Log-likelihood: -848.5 on 8 Df
-```
 
-compare with `singleRcapture:`
-
-``` r
 model <- estimatePopsize(
   formula = capture ~ gender + age + nation, 
   data = netherlandsimmigrant, 

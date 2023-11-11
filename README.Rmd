@@ -55,10 +55,18 @@ We also allow bootstrap methods:
 x <- rnorm(n = 1000)
 y <- rpois(n = 1000, lambda = exp(-1 + x))
 m1 <- vglm(y ~ x, data = data, family = pospoisson())
-summary(estimatePopsize(m1, popVar = "bootstrap"))
+singleRm1 <- estimatePopsize(m1, popVar = "bootstrap")
+summary(singleRm1)
 ```
 
-Utilising popular `countreg` package:
+The `plots` method that is available for native `singleRcapture` object are also 
+(being) developed for `singleRcaptureExtra` objects (`singleRforeign` class)
+
+```{r}
+plot(singleRm1, plotType = "bootHist")
+```
+
+Utilising popular `countreg` package (compare with `singleRcapture`):
 ```{r countreg}
 library(countreg)
 model <- zerotrunc(
@@ -66,11 +74,10 @@ model <- zerotrunc(
   data = netherlandsimmigrant, 
   dist = "poisson"
 )
-summary(estimatePopsize(model))
-```
+print(summary(estimatePopsize(model)), 
+      # Print summary of foreign object (works for all methods)
+      summaryForeign = TRUE)
 
-compare with `singleRcapture:`
-```{r singleRcapture}
 model <- estimatePopsize(
   formula = capture ~ gender + age + nation, 
   data = netherlandsimmigrant, 
