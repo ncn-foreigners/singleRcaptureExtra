@@ -1,4 +1,5 @@
 # Add multicore
+#' @importFrom VGAM vgam.fit
 bootVGAM <- function(object,
                      B = 500,
                      trace = FALSE,
@@ -119,7 +120,7 @@ bootVGAM <- function(object,
 
     theta <- NULL
     try(
-      theta <- vgam.fit(
+      theta <- VGAM::vgam.fit(
         y = y, x = xStrap, mf = mf, w = wtStrap, offset = offsetStrap,
         Xm2 = object@Xm2, Ym2 = object@Ym2,
         etastart = eta[as.numeric(strap), , drop = FALSE],

@@ -43,7 +43,7 @@ summary.singleRforeign <- function(object,
 #' @importClassesFrom VGAM vgam
 #' @export
 print.summarysingleRforeign <- function(x,
-                                        summaryForeign = TRUE,
+                                        summaryForeign = FALSE,
                                         ...) {
   cat(
     "\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"),
@@ -208,3 +208,101 @@ dfpopsize.singleRforeign <- function(model,
 
   }
 }
+
+# TODO make them all methods
+
+#' AA
+#'
+#' @param object A
+#' @param includezeros A
+#' @param range A
+#' @param ... A
+#'
+#' @return A
+#' @importFrom VGAM dgaitdpois dgaitdnbinom
+#' @importFrom VGAMdata doipospois doapospois
+#' @export
+marginalFreqVglm <- function(object,
+                             includezeros = TRUE,
+                             range, ...) {
+  y <- if (is.null(object$y)) as.numeric(stats::model.response(model.frame(object))) else object$y
+  if (missing(range)) {range <- (min(y):max(y))}
+  y <- table(y)[names(table(y)) %in% as.character(range)]
+  y <- y[!is.na(y)]
+
+  # PMF for truncated distributions:
+
+  links <- getLinksBlurb(object$foreignObject@family@blurb)
+  probFun <- switch(object$foreignObject@family@vfamily[1],
+    "oapospoisson" = function(x, eta) {
+      lambda <- VGAM::eta2theta(
+        eta[, c(FALSE, TRUE), drop = FALSE], links[2],
+        list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+             short = TRUE, tag = FALSE)
+      )
+      pobs1 <- VGAM::eta2theta(
+        eta[, !c(FALSE, TRUE), drop = FALSE], links[1],
+        list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+             short = TRUE, tag = FALSE)
+      )
+      VGAMdata::doapospois(x, lambda = lambda, pobs1 = pobs1)
+    },
+    "pospoisson" = function(x, eta) {
+      lambda <- VGAM::eta2theta(
+        eta, links,
+        list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+             short = TRUE, tag = FALSE)
+      )
+      VGAM::dgaitdpois(x = x, lambda.p = lambda, truncate = 0)
+    },
+    "oipospoisson" = function(x, eta) {
+      lambda <- VGAM::eta2theta(
+        eta[, c(FALSE, TRUE), drop = FALSE], links[2],
+        list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+             short = TRUE, tag = FALSE)
+      )
+      pstr1 <- VGAM::eta2theta(
+        eta[, !c(FALSE, TRUE), drop = FALSE], links[1],
+        list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+             short = TRUE, tag = FALSE)
+      )
+      VGAMdata::doipospois(x = x, lambda = lambda, pstr1 = pstr1)
+    },
+    "posnegbinomial" = function(x, eta) {
+      lambda <- VGAM::eta2theta(
+        eta[, !c(FALSE, TRUE), drop = FALSE], links[1],
+        list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+             short = TRUE, tag = FALSE)
+      )
+      size <- VGAM::eta2theta(
+        eta[, c(FALSE, TRUE), drop = FALSE], links[2],
+        list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+             short = TRUE, tag = FALSE)
+      )
+      VGAM::dgaitdnbinom(x = x, size.p = size, munb.p = lambda)
+    }
+  )
+
+  eta <- predict(object$foreignObject)
+  res <- apply(
+    eta, 1,
+    FUN = function(x) {probFun(
+      x = range,
+      eta = x
+    )}
+  )
+  res <- rowSums(res)
+  names(res) <- as.character(range)
+
+  if(isTRUE(includezeros)) {
+    res <- c(object$populationSize$pointEstimate - length(object$y), res)
+    names(res)[1] <- "0"
+  }
+
+  structure(list(
+    table = res, y = y,
+    df = length(y) - length(coef(object$foreignObject)) - 1,
+    name = "Foreign object"
+  ), class = c("singleRmargin"))
+}
+

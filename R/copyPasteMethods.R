@@ -1,3 +1,5 @@
+# All methods defined in this file are just basically calling original methods
+# for foreign objects they contain. No need for doccumentation
 #' @importClassesFrom VGAM vglm
 #' @importClassesFrom VGAM vgam
 #' @importFrom stats predict
@@ -102,6 +104,22 @@ BIC.singleRforeign <- function(object, ...) BIC(object$foreignObject, ...)
 #' @method logLik singleRforeign
 #' @exportS3Method
 logLik.singleRforeign <- function(object, ...) logLik(object$foreignObject, ...)
+
+#' @importClassesFrom VGAM vglm
+#' @importClassesFrom VGAM vgam
+#' @importMethodsFrom VGAM coef
+#' @importFrom VGAM coef
+#' @method coef singleRforeign
+#' @exportS3Method
+coef.singleRforeign <- function(object, ...) coef(object$foreignObject, ...)
+
+#' @importClassesFrom VGAM vglm
+#' @importClassesFrom VGAM vgam
+#' @importMethodsFrom VGAM Coef
+#' @importFrom VGAM Coef
+#' @method Coef singleRforeign
+#' @exportS3Method
+Coef.singleRforeign <- function(object, ...) Coef(object$foreignObject, ...)
 
 #' @importClassesFrom VGAM vglm
 #' @importClassesFrom VGAM vgam

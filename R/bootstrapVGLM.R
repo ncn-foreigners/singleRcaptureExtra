@@ -1,6 +1,7 @@
 # Add multicore
 #' @importFrom stats as.formula rpois terms
 #' @importFrom VGAM vglm.fit
+#' @importFrom stats rbinom
 bootVGLM <- function(object,
                      B = 500,
                      trace = FALSE,
@@ -22,6 +23,10 @@ bootVGLM <- function(object,
   extra$type.fitted <- if (object@family@vfamily[1] %in% c("oipospoisson", "oapospoisson")) extra$type.fitted else "prob0"
   # without names it takes less memory
   y <- as.vector(model.response(mf))
+
+  # getting links
+  # TODO:: this is beyond moronic
+  links <- getLinksBlurb(object@family@blurb)
 
   offset <- object@offset
   if (any(dim(offset) != dim(object@predictors))) {
@@ -84,7 +89,9 @@ bootVGLM <- function(object,
         }
 
         # edit this for other fam funcs
-        yStrap <- rpois(nn, lambda = exp(xStrap %*% cf))
+        yStrap <- object@extra$singleRcaptureSimulate(
+          nn, eta = xStrap %*% cf, links = links
+        )
 
         wtStrap <- wtStrap[yStrap > 0]
         mfStrap <- mfStrap[yStrap > 0, , drop = FALSE]
@@ -100,6 +107,26 @@ bootVGLM <- function(object,
 
         yStrap <- yStrap[yStrap > 0]
 
+        oasgn <- attr(xStrap, "assign")
+        attr(xStrap, "assign") <- VGAM:::attrassigndefault(xStrap, attr(mfStrap, "terms"))
+        attr(xStrap, "orig.assign.lm") <- oasgn
+      },
+      "semiparametric" = {
+        strap <- sum(rbinom(size = 1, n = N, prob = n / N))
+
+        strap <- sample.int(replace = TRUE, n = n, size = strap)
+        yStrap  <- as.numeric(y[strap])
+        wtStrap <- as.numeric(wt[strap])
+
+        offsetStrap  <- offset[strap, , drop = FALSE]
+        mfStrap <- mf[strap, , drop = FALSE]
+
+        if (length(object@contrasts)) {
+          xStrap <- model.matrix(object@terms, mfStrap, object@contrasts)
+        } else {
+          xStrap <- model.matrix(object@terms, mfStrap)
+        }
+        etaStrap <- eta[as.numeric(strap), , drop = FALSE]
         oasgn <- attr(xStrap, "assign")
         attr(xStrap, "assign") <- VGAM:::attrassigndefault(xStrap, attr(mfStrap, "terms"))
         attr(xStrap, "orig.assign.lm") <- oasgn

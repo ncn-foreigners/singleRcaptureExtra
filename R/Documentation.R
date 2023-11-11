@@ -9,6 +9,7 @@ NULL
 #' @param controlCountreg A
 #' @param controlVglm A
 #' @param derivFunc A
+#' @param controlPopVarForeign A
 #' @param ... A
 #' @description
 #' TODO

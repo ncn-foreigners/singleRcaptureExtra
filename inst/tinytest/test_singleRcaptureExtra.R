@@ -10,6 +10,12 @@ obj1 <- vglm(TOTAL_SUB ~ .,
 AA <- estimatePopsize(obj)
 AA1 <- estimatePopsize(obj1)
 
+# AA2 <- estimatePopsize(obj1, popVar = "bootstrap")
+# AA3 <- estimatePopsize(obj1, popVar = "bootstrap",
+#                        controlPopVarForeign = controlPopVarVglm(bootType = "semiparametric"))
+# AA4 <- estimatePopsize(obj1, popVar = "bootstrap",
+#                       controlPopVarForeign = controlPopVarVglm(bootType = "parametric"))
+
 expect_silent(fitted(AA))
 expect_silent(fitted(AA1))
 

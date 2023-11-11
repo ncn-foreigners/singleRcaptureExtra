@@ -23,6 +23,7 @@
   naAction = NULL,
   popVar = c("analytic", "bootstrap"),
   controlVglm = NULL,
+  controlPopVarForeign = controlPopVarVglm(),
   derivFunc = NULL,
   ...
 )
@@ -51,6 +52,8 @@
 \item{...}{A}
 
 \item{controlVglm}{A}
+
+\item{controlPopVarForeign}{A}
 
 \item{derivFunc}{A}
 }
