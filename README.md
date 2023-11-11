@@ -21,8 +21,6 @@ library(VGAM)
 #> Loading required package: splines
 library(singleRcaptureExtra)
 #> Loading required package: singleRcapture
-#> Warning: replacing previous import 'VGAM::coef' by 'stats::coef' when loading
-#> 'singleRcaptureExtra'
 set.seed(123)
 x <- rnorm(n = 1000)
 y <- rpois(n = 1000, lambda = exp(-1 + cos(x)))
@@ -60,11 +58,6 @@ plotvgam(additiveModel, data)
 
 <img src="man/figures/README-plotVGAM-1.png" width="100%" /> with the
 actual curve being:
-
-``` r
-curve(cos, from = min(x), to = max(x))
-```
-
 <img src="man/figures/README-curve-1.png" width="100%" />
 
 We also allow bootstrap methods:
@@ -100,10 +93,25 @@ are also (being) developed for `singleRcaptureExtra` objects
 (`singleRforeign` class)
 
 ``` r
-plot(singleRm1, plotType = "bootHist")
+plot(singleRm1, plotType = "bootHist", ylim = c(0, 220))
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
+<img src="man/figures/README-bootHist-1.png" width="100%" />
+
+Diagnostics from `singleRcapture` are also available:
+
+``` r
+summary(marginalFreqVglm(singleRm1))
+#> Test for Goodness of fit of a regression model:
+#> 
+#>                  Test statistics df P(>X^2)
+#> Chi-squared test         3257.39  2       0
+#> G-test                   1635.35  2       0
+#> 
+#> -------------------------------------------------------------- 
+#> Cells with fitted frequencies of < 5 have been dropped 
+#> Names of cells used in calculating test(s) statistic: 1 2 3 4 5
+```
 
 Utilising popular `countreg` package (compare with `singleRcapture`):
 

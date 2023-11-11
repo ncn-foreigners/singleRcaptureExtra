@@ -46,7 +46,7 @@ We see that `1000` is well with confidence intervals and that estimates for `x` 
 plotvgam(additiveModel, data)
 ```
 with the actual curve being:
-```{r curve}
+```{r curve, echo=FALSE}
 curve(cos, from = min(x), to = max(x))
 ```
 
@@ -62,8 +62,14 @@ summary(singleRm1)
 The `plots` method that is available for native `singleRcapture` object are also 
 (being) developed for `singleRcaptureExtra` objects (`singleRforeign` class)
 
+```{r bootHist}
+plot(singleRm1, plotType = "bootHist", ylim = c(0, 220))
+```
+
+Diagnostics from `singleRcapture` are also available:
+
 ```{r}
-plot(singleRm1, plotType = "bootHist")
+summary(marginalFreqVglm(singleRm1))
 ```
 
 Utilising popular `countreg` package (compare with `singleRcapture`):

@@ -108,7 +108,7 @@ logLik.singleRforeign <- function(object, ...) logLik(object$foreignObject, ...)
 #' @importClassesFrom VGAM vglm
 #' @importClassesFrom VGAM vgam
 #' @importMethodsFrom VGAM coef
-#' @importFrom VGAM coef
+#' @importFrom stats coef
 #' @method coef singleRforeign
 #' @exportS3Method
 coef.singleRforeign <- function(object, ...) coef(object$foreignObject, ...)
