@@ -29,3 +29,5 @@ Imports:
 Suggests: 
   tinytest,
   covr
+Remotes:
+    rforge/countreg/pkg
