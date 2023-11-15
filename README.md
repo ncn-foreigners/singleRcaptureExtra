@@ -65,6 +65,8 @@ We also allow bootstrap methods:
 ``` r
 x <- rnorm(n = 1000)
 y <- rpois(n = 1000, lambda = exp(-1 + x))
+data <- data.frame(y = y, x = x)
+data <- data[data$y > 0, ]
 m1 <- vglm(y ~ x, data = data, family = pospoisson())
 singleRm1 <- estimatePopsize(m1, popVar = "bootstrap")
 summary(singleRm1)
@@ -74,18 +76,18 @@ summary(singleRm1)
 #> 
 #> -----------------------
 #> Population size estimation results: 
-#> Point estimate 933.535
-#> Observed proportion: 54.3% (N obs = 507)
-#> Boostrap sample skewness: 0.1734202
+#> Point estimate 874.9754
+#> Observed proportion: 40.7% (N obs = 356)
+#> Boostrap sample skewness: 0.6059152
 #> 0 skewness is expected for normally distributed variable
 #> ---
-#> Bootstrap Std. Error 48.13169
+#> Bootstrap Std. Error 97.00579
 #> 95% CI for the population size:
 #> lowerBound upperBound 
-#>   845.2718  1029.8236 
+#>   728.2672  1117.9471 
 #> 95% CI for the share of observed population:
 #> lowerBound upperBound 
-#>   49.23173   59.98071
+#>   31.84408   48.88316
 ```
 
 The `plots` method that is available for native `singleRcapture` object
@@ -104,13 +106,13 @@ Diagnostics from `singleRcapture` are also available:
 summary(marginalFreqVglm(singleRm1))
 #> Test for Goodness of fit of a regression model:
 #> 
-#>                  Test statistics df P(>X^2)
-#> Chi-squared test         3257.39  2       0
-#> G-test                   1635.35  2       0
+#>                  Test statistics df  P(>X^2)
+#> Chi-squared test         1792.40  6  0.0e+00
+#> G-test                    949.01  6 9.5e-202
 #> 
 #> -------------------------------------------------------------- 
 #> Cells with fitted frequencies of < 5 have been dropped 
-#> Names of cells used in calculating test(s) statistic: 1 2 3 4 5
+#> Names of cells used in calculating test(s) statistic: 1 2 3 4 5 6 7 8
 ```
 
 Utilising popular `countreg` package (compare with `singleRcapture`):

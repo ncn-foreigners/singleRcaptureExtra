@@ -1,6 +1,6 @@
 # Add multicore
 #' @importFrom stats as.formula rpois terms
-#' @importFrom VGAM vglm.fit
+#' @importFrom VGAM vglm.fit lm2vlm.model.matrix
 #' @importFrom stats rbinom
 bootVGLM <- function(object,
                      B = 500,
@@ -14,15 +14,32 @@ bootVGLM <- function(object,
 
   n   <- nobs(object)
   wt  <- object@prior.weights
-  mf  <- model.frame(object)
-  if (length(wt) != NROW(mf)) {
-    wt <- rep(1, NROW(mf))
-  }
+
+  # if (length(object@contrasts)) {
+  #   lmMatAsgn  <- model.matrix(object@terms, model.frame(object), object@contrasts)
+  # } else {
+  #   lmMatAsgn  <- model.matrix(object@terms, model.frame(object))
+  # }
+  # lmMatAsgn <- attr(lmMatAsgn, "assign")
+  # print(lmMatAsgn)
+  # print(attr(model.matrix(object, "lm"), "assign"))
+  # stop("abc")
+
+  #X  <- model.matrix(object, "vlm")
+  X  <- model.matrix(object, "lm")
+  lmMatAsgn <- attr(object, "assign")
   eta <- object@predictors
+  NPRED <- NCOL(eta)
+  y <- model.response(model.frame(object))
+  constraints <- constraints(object, type = "term")
+
+  if (length(wt) != NROW(eta)) {
+    wt <- rep(1, NROW(eta))
+  }
+
   extra <- object@extra
   extra$type.fitted <- if (object@family@vfamily[1] %in% c("oipospoisson", "oapospoisson")) extra$type.fitted else "prob0"
   # without names it takes less memory
-  y <- as.vector(model.response(mf))
 
   # getting links
   # TODO:: this is beyond moronic
@@ -59,19 +76,21 @@ bootVGLM <- function(object,
         strap <- sample.int(replace = TRUE, n = n)
         yStrap  <- as.numeric(y[strap])
         wtStrap <- as.numeric(wt[strap])
+        etaStrap <- eta[as.numeric(strap), , drop = FALSE]
 
         offsetStrap  <- offset[strap, , drop = FALSE]
-        mfStrap <- mf[strap, , drop = FALSE]
+        xStrap <- X[strap, , drop = FALSE]
 
-        if (length(object@contrasts)) {
-          xStrap <- model.matrix(object@terms, mfStrap, object@contrasts)
-        } else {
-          xStrap <- model.matrix(object@terms, mfStrap)
-        }
-        etaStrap <- eta[as.numeric(strap), , drop = FALSE]
-        oasgn <- attr(xStrap, "assign")
-        attr(xStrap, "assign") <- VGAM:::attrassigndefault(xStrap, attr(mfStrap, "terms"))
-        attr(xStrap, "orig.assign.lm") <- oasgn
+        # Figure out if non treatment constrasts break this
+        # if (length(object@contrasts)) {
+        #   xStrap <- model.matrix(object@terms, mfStrap, object@contrasts)
+        # } else {
+        #   xStrap <- model.matrix(object@terms, mfStrap)
+        # }
+
+        attr(xStrap, "contrasts") <- object@contrasts
+        attr(xStrap, "assign") <- attr(X, "assign")
+        attr(xStrap, "orig.assign.lm") <- attr(X, "orig.assign.lm")
       },
       "parametric" = {
         nn <- floor(N) + stats::rbinom(n = 1, size = 1, prob = N - floor(N))
@@ -80,36 +99,32 @@ bootVGLM <- function(object,
         etaStrap <- eta[as.numeric(strap), , drop = FALSE]
 
         offsetStrap  <- offset[strap, , drop = FALSE]
-        mfStrap <- mf[strap, , drop = FALSE]
+        xStrap <- X[strap, , drop = FALSE]
 
-        if (length(object@contrasts)) {
-          xStrap <- model.matrix(object@terms, mfStrap, object@contrasts)
-        } else {
-          xStrap <- model.matrix(object@terms, mfStrap)
-        }
+        # if (length(object@contrasts)) {
+        #   xStrap <- model.matrix(object@terms, mfStrap, object@contrasts)
+        # } else {
+        #   xStrap <- model.matrix(object@terms, mfStrap)
+        # }
 
-        # edit this for other fam funcs
         yStrap <- object@extra$singleRcaptureSimulate(
-          nn, eta = xStrap %*% cf, links = links
+          nn, eta = predictvglm(
+            type = "link", object,
+            newdata = as.data.frame(model.frame(object)[strap, , drop = FALSE])
+          ), links = links
         )
 
         wtStrap <- wtStrap[yStrap > 0]
-        mfStrap <- mfStrap[yStrap > 0, , drop = FALSE]
+        xStrap  <- xStrap[yStrap > 0, , drop = FALSE]
 
         etaStrap     <- etaStrap[yStrap > 0, , drop = FALSE]
         offsetStrap  <- offsetStrap[yStrap > 0, , drop = FALSE]
 
-        if (length(object@contrasts)) {
-          xStrap <- model.matrix(object@terms, mfStrap, object@contrasts)
-        } else {
-          xStrap <- model.matrix(object@terms, mfStrap)
-        }
-
         yStrap <- yStrap[yStrap > 0]
 
-        oasgn <- attr(xStrap, "assign")
-        attr(xStrap, "assign") <- VGAM:::attrassigndefault(xStrap, attr(mfStrap, "terms"))
-        attr(xStrap, "orig.assign.lm") <- oasgn
+        attr(xStrap, "contrasts") <- object@contrasts
+        attr(xStrap, "assign") <- attr(X, "assign")
+        attr(xStrap, "orig.assign.lm") <- attr(X, "orig.assign.lm")
       },
       "semiparametric" = {
         strap <- sum(rbinom(size = 1, n = N, prob = n / N))
@@ -119,51 +134,47 @@ bootVGLM <- function(object,
         wtStrap <- as.numeric(wt[strap])
 
         offsetStrap  <- offset[strap, , drop = FALSE]
-        mfStrap <- mf[strap, , drop = FALSE]
+        xStrap <- X[strap, , drop = FALSE]
 
-        if (length(object@contrasts)) {
-          xStrap <- model.matrix(object@terms, mfStrap, object@contrasts)
-        } else {
-          xStrap <- model.matrix(object@terms, mfStrap)
-        }
+        # if (length(object@contrasts)) {
+        #   xStrap <- model.matrix(object@terms, mfStrap, object@contrasts)
+        # } else {
+        #   xStrap <- model.matrix(object@terms, mfStrap)
+        # }
         etaStrap <- eta[as.numeric(strap), , drop = FALSE]
-        oasgn <- attr(xStrap, "assign")
-        attr(xStrap, "assign") <- VGAM:::attrassigndefault(xStrap, attr(mfStrap, "terms"))
-        attr(xStrap, "orig.assign.lm") <- oasgn
+
+        attr(xStrap, "contrasts") <- object@contrasts
+        attr(xStrap, "assign") <- attr(X, "assign")
+        attr(xStrap, "orig.assign.lm") <- attr(X, "orig.assign.lm")
       }
     )
 
+    if (isTRUE(trace)) cat("Iteration number: ", k,
+                           " sample size: ", length(yStrap),
+                           sep = "")
     theta <- NULL
     suppressWarnings(
       try(
         theta <- vglm.fit(
           y = yStrap, x = xStrap,
           etastart = etaStrap,
-          constraints = object@constraints,
+          constraints = constraints,
           extra = extra, w = wtStrap, offset = offsetStrap,
           qr.arg = TRUE, Terms = object@terms,
           function.name = "vglm", family = object@family,
           control = control,
           Xm2 = object@Xm2, Ym2 = object@Ym2, mustart = NULL
         ),
-        silent = FALSE
+        silent = TRUE
       )
     )
     k <- k + 1
 
     if (is.null(theta)) {
-      if (isTRUE(trace)) cat("\n")
       k <- k - 1
+      if (isTRUE(trace)) cat("\n",sep = "")
     } else {
       theta <- theta$predictors
-      if (isTRUE(trace)) {
-        switch (
-          bootType,
-          "parametric" = {1},
-          "semiparametric" = {1},
-          "nonparametric" = {print(summary(theta))}
-        )
-      }
 
       if (object@family@vfamily[1] == "oapospoisson") {
         links <- (strsplit(object@family@blurb[c(5, 7)], split = "\\(") |> unlist())[c(1,3)]

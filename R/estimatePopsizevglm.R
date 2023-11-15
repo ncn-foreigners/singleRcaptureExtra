@@ -211,6 +211,7 @@ estimatePopsize.vglm <- function(formula,
     "bootstrap" = {
       N <- wg / (1 - PW)
 
+      # Asign sampling functions for each distribution
       formula@extra$singleRcaptureSimulate <- switch(formula@family@vfamily[1],
         "oapospoisson" = function(n, eta, links) {
           lambda <- VGAM::eta2theta(
@@ -270,10 +271,12 @@ estimatePopsize.vglm <- function(formula,
           stats::rnbinom(n = n, size = size, mu = lambda)
         }
       )
+
+      # Bootstrap call
       strappedStatistic <- bootVGLM(
         formula,
         B = controlPopVarForeign$B,
-        trace = FALSE,
+        trace = controlPopVarForeign$traceBootstrapSize,
         N = N,
         visT = controlPopVarForeign$bootstrapVisualTrace,
         bootType = controlPopVarForeign$bootType

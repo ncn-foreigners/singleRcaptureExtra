@@ -54,6 +54,8 @@ We also allow bootstrap methods:
 ```{r VGAMboot}
 x <- rnorm(n = 1000)
 y <- rpois(n = 1000, lambda = exp(-1 + x))
+data <- data.frame(y = y, x = x)
+data <- data[data$y > 0, ]
 m1 <- vglm(y ~ x, data = data, family = pospoisson())
 singleRm1 <- estimatePopsize(m1, popVar = "bootstrap")
 summary(singleRm1)
