@@ -6,6 +6,8 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/ncn-foreigners/singleRcaptureExtra/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ncn-foreigners/singleRcaptureExtra/actions/workflows/R-CMD-check.yaml)
+[![Codecov test
+coverage](https://codecov.io/gh/ncn-foreigners/singleRcaptureExtra/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ncn-foreigners/singleRcaptureExtra/tree/main)
 <!-- badges: end -->
 
 An expention of `singleRcapture` package to handle fitted object from
