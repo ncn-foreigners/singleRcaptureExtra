@@ -1,6 +1,6 @@
 # Add multicore
 #' @importFrom stats as.formula rpois terms
-#' @importFrom VGAM vglm.fit lm2vlm.model.matrix
+#' @importFrom VGAM vglm.fit lm2vlm.model.matrix predictvglm
 #' @importFrom stats rbinom
 bootVGLM <- function(object,
                      B = 500,
@@ -108,7 +108,7 @@ bootVGLM <- function(object,
         # }
 
         yStrap <- object@extra$singleRcaptureSimulate(
-          nn, eta = predictvglm(
+          nn, eta = VGAM::predictvglm(
             type = "link", object,
             newdata = as.data.frame(model.frame(object)[strap, , drop = FALSE])
           ), links = links

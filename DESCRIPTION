@@ -26,4 +26,6 @@ Imports:
     VGAM,
     countreg,
     VGAMdata
-Suggests: tinytest
+Suggests: 
+  tinytest,
+  covr
