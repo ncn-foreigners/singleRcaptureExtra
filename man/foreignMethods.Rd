@@ -97,7 +97,7 @@ Population size is then usually estimated by Horvitz-Thompson type estimator:
 where \mjseqn{I_{k}=I_{Y_{k} > 0}} are indicator variables, with value 1 if
 kth unit was observed at least once and 0 otherwise. The full estimate is
 obtained after plugging model based estimate for
-\mjseqn{\frac{1}{\mathbb{P}(Y_{k}>0)}}.
+\mjseqn{\dfrac{1}{\mathbb{P}(Y_{k}>0)}}.
 }
 \details{
 \loadmathjax
@@ -105,10 +105,23 @@ obtained after plugging model based estimate for
 Most of the theory on single source capture-recapture (SSCR) is contained in
 details of help file \code{\link[singleRcapture:estimatePopsize]{singleRcapture::estimatePopsize()}}.
 
-As for the implementation itself
+As for the implementation itself starting with \code{zerotrunc} class i.e.
+objects created by \code{\link[countreg:zerotrunc]{countreg::zerotrunc()}} there are only 3 possible
+distributions those are zero truncated \code{c("poisson", "negbin", "geometric")}
+all of which are also implemented in \code{singleRcapture}
+(see \code{\link[singleRcapture:singleRmodels]{singleRcapture::ztpoisson()}} for full list). Since for every model that
+can be fitted in \code{countreg::zerotrunc} is also possible to make an equivalent
+object in \code{singleRcapture} implementation of this method is most just
+code via converting the \code{zerotrunc} class object information to that
+used in \code{estimatePopsize.default} and then calling internals from \code{singleRcapture}.
+
+Additionally, instead of calling \code{countreg::zerotrunc} for fitting on
+data from bootstrap samples (if \code{popVar} argument was set to \code{"bootstrap"})
+\code{estimatePopsize.fit} is called to fit these objects (it is planned to
+add additional control argument to choosing the fitting engine an option in controls).
 }
 \seealso{
 \code{\link[singleRcapture:estimatePopsize]{singleRcapture::estimatePopsize()}} - For original implementation and more theory.
-\code{\link[=controlEstPopCountreg]{controlEstPopCountreg()}} and \code{\link[=controlEstPopVglm]{controlEstPopVglm()}} - For controls for each
-\code{estimatePopsize} method.
+\code{\link[=controlEstPopCountreg]{controlEstPopCountreg()}} and \code{\link[=controlEstPopVglm]{controlEstPopVglm()}} - For controls provided to each \code{estimatePopsize} method.
+\code{\link[countreg:zerotrunc]{countreg::zerotrunc()}} - for \code{zerotrunc} class.
 }

@@ -17,7 +17,7 @@ NULL
 #' where \mjseqn{I_{k}=I_{Y_{k} > 0}} are indicator variables, with value 1 if
 #' kth unit was observed at least once and 0 otherwise. The full estimate is
 #' obtained after plugging model based estimate for
-#' \mjseqn{\frac{1}{\mathbb{P}(Y_{k}>0)}}.
+#' \mjseqn{\dfrac{1}{\mathbb{P}(Y_{k}>0)}}.
 #'
 #' @param formula A fitted object containing some zero truncated regression
 #' based on which population size estimation is to be done.
@@ -51,7 +51,20 @@ NULL
 #' details of help file [singleRcapture::estimatePopsize()].
 #'
 #' As for the implementation itself starting with \code{zerotrunc} class i.e.
-#' objects created by [countreg::zerotrunc()].
+#' objects created by [countreg::zerotrunc()] there are only 3 possible
+#' distributions those are zero truncated \code{c("poisson", "negbin", "geometric")}
+#' all of which are also implemented in \code{singleRcapture}
+#' (see [singleRcapture::ztpoisson()] for full list). Since for every model that
+#' can be fitted in \code{countreg::zerotrunc} is also possible to make an equivalent
+#' object in \code{singleRcapture} implementation of this method is most just
+#' code via converting the \code{zerotrunc} class object information to that
+#' used in \code{estimatePopsize.default} and then calling internals from \code{singleRcapture}.
+#'
+#' Additionally, instead of calling \code{countreg::zerotrunc} for fitting on
+#' data from bootstrap samples (if \code{popVar} argument was set to \code{"bootstrap"})
+#' \code{estimatePopsize.fit} is called to fit these objects (it is planned to
+#' add additional control argument to choosing the fitting engine an option in controls).
+#'
 #'
 #' @return An object with following \code{S3} classes:
 #' \code{"singleRforeign", "singleRStaticCountData", "singleR"}

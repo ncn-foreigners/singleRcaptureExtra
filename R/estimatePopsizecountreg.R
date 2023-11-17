@@ -40,9 +40,9 @@ estimatePopsize.zerotrunc <- function(formula,
       "negbin"    = cbind(rep(0, sizeObserved), rep(0, sizeObserved)),
       "geometric" = cbind(rep(0, sizeObserved))
     )
+  } else if (formula$dist == "negbin") {
+    offset <- cbind(offset, rep(0, sizeObserved))
   }
-
-  trcount <- control$trcount
 
   family <- switch (formula$dist,
     "poisson"   = singleRcapture::ztpoisson(),
@@ -53,13 +53,13 @@ estimatePopsize.zerotrunc <- function(formula,
   POP <- switch(popVar,
     "analytic" = {
       strappedStatistic <- "No bootstrap performed"
-      N <- family$pointEst(pw = wg, eta = eta) + trcount
-      X <- if (formula$dist != "negbin") model.matrix(formula) else
-        singleRcapture:::singleRinternalGetXvlmMatrix(
-          parNames = c("lambda", "theta"),
-          formulas = list(formula$formula, ~ 1),
-          X        = model.frame(formula)
-        )
+      N <- family$pointEst(pw = wg, eta = eta)
+      if (formula$dist != "negbin") {X <- model.matrix(formula)} else {
+        X <- rbind(cbind(model.matrix(formula), 0),
+                   cbind(matrix(0, nrow = length(wg),
+                                ncol = length(stats::coef(formula))), 1))
+        attr(X, "hwm") <- cbind(length(stats::coef(formula)), 1)
+      }
 
       variation <- as.numeric(family$popVar(
         eta = eta,
@@ -78,6 +78,7 @@ estimatePopsize.zerotrunc <- function(formula,
 
       if (!is.finite(variation))
         stop("Computed variance is infinite/NaN/NULL")
+
       sd <- sqrt(variation)
       G <- exp(sc * sqrt(log(1 + variation / ((N - sizeObserved) ^ 2))))
 
@@ -100,7 +101,7 @@ estimatePopsize.zerotrunc <- function(formula,
       )
     },
     "bootstrap" = {
-      N <- family$pointEst(pw = wg, eta = eta) + trcount
+      N <- family$pointEst(pw = wg, eta = eta)
       ### Assigning necessary values
       hwm <- switch (formula$dist,
         "poisson"   = c(length(formula$coefficients)),
@@ -130,7 +131,7 @@ estimatePopsize.zerotrunc <- function(formula,
           beta     = if (formula$dist != "negbin") stats::coef(formula) else
             c(stats::coef(formula), log(formula$theta)),
           weights  = wg,
-          trcount  = trcount,
+          trcount  = 0,
           numboot  = control$B,
           cores    = control$cores,
           method   = control$fittingMethod,
@@ -159,7 +160,7 @@ estimatePopsize.zerotrunc <- function(formula,
           beta     = if (formula$dist != "negbin") stats::coef(formula) else
             c(stats::coef(formula), log(formula$theta)),
           weights  = wg,
-          trcount  = trcount,
+          trcount  = 0,
           numboot  = control$B,
           method   = control$fittingMethod,
           controlBootstrapMethod = control$bootstrapFitcontrol,
