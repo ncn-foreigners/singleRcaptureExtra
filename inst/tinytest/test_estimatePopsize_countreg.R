@@ -14,7 +14,8 @@ library(countreg)
 # write.csv(x = df, file = "inst/tinytest/countreg_test_dataframe.csv",
 #           row.names = FALSE)
 
-df <- read.csv("inst/tinytest/countreg_test_dataframe.csv", header = TRUE)
+#df <- read.csv("inst/tinytest/countreg_test_dataframe.csv", header = TRUE)
+df <- read.csv("countreg_test_dataframe.csv", header = TRUE)
 
 mm1 <- zerotrunc(
   formula = y1 ~ x1 * x2, dist = "poisson",
