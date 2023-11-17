@@ -12,24 +12,37 @@ bootVGAM <- function(object,
 
   n   <- nobs(object)
   wt  <- object@prior.weights
-  mf  <- model.frame(object)
-  if (length(wt) != NROW(mf)) {
-    wt <- rep(1, NROW(mf))
-  }
+
+  #X  <- model.matrix(object, "vlm")
+  X  <- model.matrix(object, "lm")
+  #lmMatAsgn <- attr(object, "assign")
   eta <- object@predictors
+  NPRED <- NCOL(eta)
+  y <- model.response(model.frame(object))
+  constraints <- constraints(object, type = "term")
+
+  if (length(wt) != NROW(eta)) {
+    wt <- rep(1, NROW(eta))
+  }
+
   extra <- object@extra
   extra$type.fitted <- if (object@family@vfamily[1] %in% c("oipospoisson", "oapospoisson")) extra$type.fitted else "prob0"
-  # without names it takes less memory
-  y <- as.vector(model.response(mf))
+
+  links <- getLinksBlurb(object@family@blurb)
 
   offset <- object@offset
   if (any(dim(offset) != dim(object@predictors))) {
     offset <- matrix(0, nrow = NROW(object@predictors),
                      ncol = NCOL(object@predictors))
   }
+  cf <- coef(object)
 
+  control <- object@control
+  control$noWarning <- TRUE
+
+  # Mirroring VGAM::vgam fitting setup
   mtsave <- terms(as.formula(object@call$formula), specials = c("s", "sm.os", "sm.ps"),
-                  data = mf)
+                  data = model.frame(object))
   aa <- attributes(mtsave)
   smoothers <- aa$specials
   mgcv.sm.os <- length(smoothers$sm.os) > 0

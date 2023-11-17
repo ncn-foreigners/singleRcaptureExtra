@@ -27,7 +27,7 @@ bootVGLM <- function(object,
 
   #X  <- model.matrix(object, "vlm")
   X  <- model.matrix(object, "lm")
-  lmMatAsgn <- attr(object, "assign")
+  #lmMatAsgn <- attr(object, "assign")
   eta <- object@predictors
   NPRED <- NCOL(eta)
   y <- model.response(model.frame(object))
@@ -39,10 +39,8 @@ bootVGLM <- function(object,
 
   extra <- object@extra
   extra$type.fitted <- if (object@family@vfamily[1] %in% c("oipospoisson", "oapospoisson")) extra$type.fitted else "prob0"
-  # without names it takes less memory
 
   # getting links
-  # TODO:: this is beyond moronic
   links <- getLinksBlurb(object@family@blurb)
 
   offset <- object@offset

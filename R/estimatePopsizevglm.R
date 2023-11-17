@@ -10,17 +10,13 @@ estimatePopsize.vglm <- function(formula,
                                  naAction = NULL,
                                  popVar   = c("analytic",
                                               "bootstrap"),
-                                 controlVglm = NULL,
-                                 controlPopVarForeign = controlPopVarVglm(),
+                                 control = controlEstPopVglm(),
                                  derivFunc = NULL,
                                  ...) {
   # Add posbinomial, oiposbinomial
   if (missing(popVar)) popVar <- "analytic"
   sizeObserved <- nobs(formula)
-  # signlevel <- controlVglm$alpha
-  # trcount <- controlVglm$trcount
-  # numboot <- controlVglm$B
-  signlevel <- controlPopVarForeign$alpha
+  signlevel <- control$alpha
 
   ### TODO:: This is terrible, don't use tryCatch if you don't have to
   PW <- tryCatch(
@@ -171,6 +167,8 @@ estimatePopsize.vglm <- function(formula,
                 cbind(dlambda.deta, dsize.deta)))
             }
           )
+        } else if (!missing(derivFunc)) {
+          derivFunc(formula)
         } else {
           stop("family slot not recognised, please provide a derivFunc argument with function for computing derivatives of 1/(1-prob0) with respect to linear predictors (or use bootstrap)")
         }
@@ -204,7 +202,7 @@ estimatePopsize.vglm <- function(formula,
           variance = variation,
           confidenceInterval = confidenceInterval,
           boot = NULL,
-          control = controlPopVarForeign
+          control = control
         ),
         class = "popSizeEstResults"
       )},
@@ -275,11 +273,11 @@ estimatePopsize.vglm <- function(formula,
       # Bootstrap call
       strappedStatistic <- bootVGLM(
         formula,
-        B = controlPopVarForeign$B,
-        trace = controlPopVarForeign$traceBootstrapSize,
+        B = control$B,
+        trace = control$traceBootstrapSize,
         N = N,
-        visT = controlPopVarForeign$bootstrapVisualTrace,
-        bootType = controlPopVarForeign$bootType
+        visT = control$bootstrapVisualTrace,
+        bootType = control$bootType
       )
       N <- sum(N)
 
@@ -300,16 +298,16 @@ estimatePopsize.vglm <- function(formula,
         stop("Computed variance is infinite/NaN/NULL")
 
       sd <- sqrt(variation)
-      if (controlPopVarForeign$sd == "normalMVUE") {
+      if (control$sd == "normalMVUE") {
         sd <- sd / (sqrt(2 / (sizeObserved - 1)) * exp(lgamma(sizeObserved / 2) - lgamma((sizeObserved- 1) / 2)))
       }
 
-      if (controlPopVarForeign$confType == "percentilic") {
+      if (control$confType == "percentilic") {
         confidenceInterval <- stats::quantile(strappedStatistic,
                                               c(signlevel / 2,
                                                 1 - signlevel / 2))
         names(confidenceInterval) <- c("lowerBound", "upperBound")
-      } else if (controlPopVarForeign$confType == "normal") {
+      } else if (control$confType == "normal") {
         G <- exp(sc * sqrt(log(1 + variation / ((N - sizeObserved) ^ 2))))
 
         confidenceInterval <- data.frame(t(data.frame(
@@ -320,7 +318,7 @@ estimatePopsize.vglm <- function(formula,
                                            sizeObserved),
                           upperBound = sizeObserved + (N - sizeObserved) * G)
         )))
-      } else if (controlPopVarForeign$confType == "basic") {
+      } else if (control$confType == "basic") {
         confidenceInterval <- 2 * N - stats::quantile(strappedStatistic,
                                                       c(1 - signlevel / 2,
                                                         signlevel / 2))
@@ -332,8 +330,8 @@ estimatePopsize.vglm <- function(formula,
           pointEstimate = N,
           variance = variation,
           confidenceInterval = confidenceInterval,
-          boot = if (controlPopVarForeign$keepbootStat) strappedStatistic else NULL,
-          control = controlPopVarForeign
+          boot = if (control$keepbootStat) strappedStatistic else NULL,
+          control = control
         ),
         class = "popSizeEstResults"
       )
@@ -345,7 +343,8 @@ estimatePopsize.vglm <- function(formula,
       foreignObject  = formula,
       call           = match.call(),
       sizeObserved   = sizeObserved,
-      populationSize = POP
+      populationSize = POP,
+      pacakgeInfo    = "VGAM::vglm"
     ),
     class = c("singleRforeign", "singleRStaticCountData", "singleR")
   )

@@ -19,14 +19,14 @@ estimatePopsize.vgam <- function(formula,
                                  naAction = NULL,
                                  popVar   = c("analytic",
                                               "bootstrap"),
-                                 controlVglm = NULL,
+                                 control = NULL,
                                  derivFunc = NULL,
                                  ...) {
   if (missing(popVar)) popVar <- "analytic"
   sizeObserved <- nobs(formula)
-  # signlevel <- controlVglm$alpha
-  # trcount <- controlVglm$trcount
-  # numboot <- controlVglm$B
+  # signlevel <- control$alpha
+  # trcount <- control$trcount
+  # numboot <- control$B
   signlevel <- .05
   trcount <- 0
   numboot <- 500
@@ -69,116 +69,116 @@ estimatePopsize.vgam <- function(formula,
                                              "oipospoisson", "posnegbinomial",
                                              "posbinomial", "oiposbinomial")) {
           derivFunc <- switch (formula@family@vfamily[1],
-                               "oapoisson" = function(eta) {
-                                 links <- (strsplit(formula@family@blurb[c(5, 7)], split = "\\(") |> unlist())[c(1,3)]
-                                 TFvec <- c(TRUE, FALSE)
+            "oapoisson" = function(eta) {
+              links <- (strsplit(formula@family@blurb[c(5, 7)], split = "\\(") |> unlist())[c(1,3)]
+              TFvec <- c(TRUE, FALSE)
 
-                                 lambda <- VGAM::eta2theta(
-                                   eta[, !TFvec, drop = FALSE], links[2],
-                                   list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
-                                        short = TRUE, tag = FALSE)
-                                 )
-                                 pobs1 <- VGAM::eta2theta(
-                                   eta[, TFvec, drop = FALSE], links[1],
-                                   list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
-                                        short = TRUE, tag = FALSE)
-                                 )
+              lambda <- VGAM::eta2theta(
+                eta[, !TFvec, drop = FALSE], links[2],
+                list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+                     short = TRUE, tag = FALSE)
+              )
+              pobs1 <- VGAM::eta2theta(
+                eta[, TFvec, drop = FALSE], links[1],
+                list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+                     short = TRUE, tag = FALSE)
+              )
 
-                                 dlambda.deta <- VGAM::dtheta.deta(
-                                   lambda, links[2], earg = list(
-                                     theta = NULL, bvalue = NULL,
-                                     inverse = FALSE, deriv = 0,
-                                     short = TRUE, tag = FALSE
-                                   )
-                                 )
+              dlambda.deta <- VGAM::dtheta.deta(
+                lambda, links[2], earg = list(
+                  theta = NULL, bvalue = NULL,
+                  inverse = FALSE, deriv = 0,
+                  short = TRUE, tag = FALSE
+                )
+              )
 
-                                 dpobs1.deta <- VGAM::dtheta.deta(
-                                   pobs1, links[1], earg = list(
-                                     theta = NULL,
-                                     bvalue = NULL, inverse = FALSE,
-                                     deriv = 0, short = TRUE,
-                                     tag = FALSE
-                                   )
-                                 )
+              dpobs1.deta <- VGAM::dtheta.deta(
+                pobs1, links[1], earg = list(
+                  theta = NULL,
+                  bvalue = NULL, inverse = FALSE,
+                  deriv = 0, short = TRUE,
+                  tag = FALSE
+                )
+              )
 
-                                 as.vector(t(
-                                   cbind(dpobs1.deta, dlambda.deta) *
-                                     cbind(rep(0, NROW(eta)), (exp(lambda) - 1) / (exp(lambda) - lambda - 1) ^ 2)
-                                 ))
-                               },
-                               "pospoisson" = function(eta) {
-                                 links <- (strsplit(formula@family@blurb[c(3)], split = "\\(") |> unlist())[c(1)]
-                                 lambda <- eta2theta(
-                                   eta, "loglink",
-                                   list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
-                                        short = TRUE, tag = FALSE)
-                                 )
-                                 dlambda.deta <- VGAM::dtheta.deta(
-                                   lambda, links[1], earg = list(
-                                     theta = NULL, bvalue = NULL,
-                                     inverse = FALSE, deriv = 0,
-                                     short = TRUE, tag = FALSE
-                                   )
-                                 )
-                                 (exp(lambda) / (exp(lambda) - 1) ^ 2) * dlambda.deta
-                               },
-                               "oipospoisson" = function(eta) {
-                                 links <- (strsplit(formula@family@blurb[c(3, 5)], split = "\\(") |> unlist())[c(1,3)]
-                                 TFvec <- c(TRUE, FALSE)
+              as.vector(t(
+                cbind(dpobs1.deta, dlambda.deta) *
+                  cbind(rep(0, NROW(eta)), (exp(lambda) - 1) / (exp(lambda) - lambda - 1) ^ 2)
+              ))
+            },
+            "pospoisson" = function(eta) {
+              links <- (strsplit(formula@family@blurb[c(3)], split = "\\(") |> unlist())[c(1)]
+              lambda <- eta2theta(
+                eta, "loglink",
+                list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+                     short = TRUE, tag = FALSE)
+              )
+              dlambda.deta <- VGAM::dtheta.deta(
+                lambda, links[1], earg = list(
+                  theta = NULL, bvalue = NULL,
+                  inverse = FALSE, deriv = 0,
+                  short = TRUE, tag = FALSE
+                )
+              )
+              (exp(lambda) / (exp(lambda) - 1) ^ 2) * dlambda.deta
+            },
+            "oipospoisson" = function(eta) {
+              links <- (strsplit(formula@family@blurb[c(3, 5)], split = "\\(") |> unlist())[c(1,3)]
+              TFvec <- c(TRUE, FALSE)
 
-                                 lambda <- VGAM::eta2theta(
-                                   eta[, !TFvec, drop = FALSE], links[2],
-                                   list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
-                                        short = TRUE, tag = FALSE)
-                                 )
-                                 dlambda.deta <- VGAM::dtheta.deta(
-                                   lambda, links[2], earg = list(
-                                     theta = NULL, bvalue = NULL,
-                                     inverse = FALSE, deriv = 0,
-                                     short = TRUE, tag = FALSE
-                                   )
-                                 )
+              lambda <- VGAM::eta2theta(
+                eta[, !TFvec, drop = FALSE], links[2],
+                list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+                     short = TRUE, tag = FALSE)
+              )
+              dlambda.deta <- VGAM::dtheta.deta(
+                lambda, links[2], earg = list(
+                  theta = NULL, bvalue = NULL,
+                  inverse = FALSE, deriv = 0,
+                  short = TRUE, tag = FALSE
+                )
+              )
 
-                                 as.vector(t(cbind(rep(0, NROW(eta)), (exp(lambda) / (exp(lambda) - 1) ^ 2) * dlambda.deta)))
-                               },
-                               "posnegbinomial" = function(eta) {
-                                 links <- (strsplit(formula@family@blurb[c(3,5)], split = "\\(") |> unlist())[c(1,3)]
-                                 TFvec <- c(TRUE, FALSE)
+              as.vector(t(cbind(rep(0, NROW(eta)), (exp(lambda) / (exp(lambda) - 1) ^ 2) * dlambda.deta)))
+            },
+            "posnegbinomial" = function(eta) {
+              links <- (strsplit(formula@family@blurb[c(3,5)], split = "\\(") |> unlist())[c(1,3)]
+              TFvec <- c(TRUE, FALSE)
 
-                                 lambda <- VGAM::eta2theta(
-                                   eta[, TFvec, drop = FALSE], links[1],
-                                   list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
-                                        short = TRUE, tag = FALSE)
-                                 )
-                                 size <- VGAM::eta2theta(
-                                   eta[, !TFvec, drop = FALSE], links[2],
-                                   list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
-                                        short = TRUE, tag = FALSE)
-                                 )
+              lambda <- VGAM::eta2theta(
+                eta[, TFvec, drop = FALSE], links[1],
+                list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+                     short = TRUE, tag = FALSE)
+              )
+              size <- VGAM::eta2theta(
+                eta[, !TFvec, drop = FALSE], links[2],
+                list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+                     short = TRUE, tag = FALSE)
+              )
 
-                                 dlambda.deta <- VGAM::dtheta.deta(
-                                   lambda, links[1], earg = list(
-                                     theta = NULL, bvalue = NULL,
-                                     inverse = FALSE, deriv = 0,
-                                     short = TRUE, tag = FALSE
-                                   )
-                                 )
+              dlambda.deta <- VGAM::dtheta.deta(
+                lambda, links[1], earg = list(
+                  theta = NULL, bvalue = NULL,
+                  inverse = FALSE, deriv = 0,
+                  short = TRUE, tag = FALSE
+                )
+              )
 
-                                 dsize.deta <- VGAM::dtheta.deta(
-                                   size, links[2], earg = list(
-                                     theta = NULL,
-                                     bvalue = NULL, inverse = FALSE,
-                                     deriv = 0, short = TRUE,
-                                     tag = FALSE
-                                   )
-                                 )
-                                 tmp1 <- size / (lambda + size)
-                                 as.vector(t(
-                                   cbind(-size*tmp1^size/((lambda+size)*(tmp1^size-1)^2),
-                                         tmp1^size*((size + lambda)*log(tmp1)+lambda)/((lambda + size)*(tmp1^size-1)^2)) *
-                                     cbind(dlambda.deta, dsize.deta)
-                                 ))
-                               }
+              dsize.deta <- VGAM::dtheta.deta(
+                size, links[2], earg = list(
+                  theta = NULL,
+                  bvalue = NULL, inverse = FALSE,
+                  deriv = 0, short = TRUE,
+                  tag = FALSE
+                )
+              )
+              tmp1 <- size / (lambda + size)
+              as.vector(t(
+                cbind(-size*tmp1^size/((lambda+size)*(tmp1^size-1)^2),
+                      tmp1^size*((size + lambda)*log(tmp1)+lambda)/((lambda + size)*(tmp1^size-1)^2)) *
+                  cbind(dlambda.deta, dsize.deta)
+              ))
+            }
           )
         } else {
           stop("family slot not recognised, please provide a derivFunc argument with function for computing derivatives of 1/(1-prob0) with respect to linear predictors (or use bootstrap)")
@@ -212,11 +212,12 @@ estimatePopsize.vgam <- function(formula,
         class = "popSizeEstResults"
       )},
     "bootstrap" = {
-      stop("Not yet implemented")
+      stop("vgam class bootstrap is not yet implemented")
       N <- sum(wg / (1 - PW))
       TT <- bootVGAM(formula, B = 500, trace = FALSE,
                      N = N, visT = TRUE, bootType = "nonparametric")
       print(summary(TT))
+      stop("abc")
     }
   )
 

@@ -6,14 +6,14 @@
 \alias{estimatePopsize.zerotrunc}
 \alias{estimatePopsize.vglm}
 \alias{estimatePopsize.vgam}
-\title{TODO}
+\title{\code{estimatePopsize} methods for objects from other regression packages}
 \usage{
 \method{estimatePopsize}{zerotrunc}(
   formula,
   subset = NULL,
   naAction = NULL,
   popVar = c("analytic", "bootstrap"),
-  controlCountreg = NULL,
+  control = NULL,
   ...
 )
 
@@ -22,8 +22,7 @@
   subset = NULL,
   naAction = NULL,
   popVar = c("analytic", "bootstrap"),
-  controlVglm = NULL,
-  controlPopVarForeign = controlPopVarVglm(),
+  control = controlEstPopVglm(),
   derivFunc = NULL,
   ...
 )
@@ -33,35 +32,83 @@
   subset = NULL,
   naAction = NULL,
   popVar = c("analytic", "bootstrap"),
-  controlVglm = NULL,
+  control = NULL,
   derivFunc = NULL,
   ...
 )
 }
 \arguments{
-\item{formula}{A}
+\item{formula}{A fitted object containing some zero truncated regression
+based on which population size estimation is to be done.}
 
-\item{subset}{A}
+\item{subset}{Not yet implemented.}
 
-\item{naAction}{A}
+\item{naAction}{Not yet implemented.}
 
-\item{popVar}{A}
+\item{popVar}{A character value indicating which variance estimation method
+to use for population size estimation, either \code{"analytic"} or
+\code{"bootstrap"}. The type of bootstrap can be specified in control argument
+and the whole theory with bootstrap is available in \code{\link[singleRcapture:estimatePopsize]{singleRcapture::estimatePopsize()}}.}
 
-\item{controlCountreg}{A}
+\item{control}{A list with control information for population size estimation
+based on \code{formula} object and for bootstrap. Can (and should) be created
+via functions written specifically to create these objects i.e. by
+\code{controlEstPopCountreg} or \code{controlEstPopVglm}.}
 
 \item{...}{A}
 
-\item{controlVglm}{A}
-
-\item{controlPopVarForeign}{A}
-
-\item{derivFunc}{A}
+\item{derivFunc}{A function of \code{formula} object that computes the derivative
+of \mjseqn{(\hat{N}|I_{1},\dots I_{N})} to compute the:
+\mjsdeqn{\mathbb{E}\left(\text{var}
+\left(\hat{N}|I_{1},\dots,I_{n}\right)\right)=
+\left.\left(\frac{\partial(N|I_1,\dots,I_N)}{\partial\boldsymbol{\beta}}\right)^{T}
+\text{cov}\left(\boldsymbol{\beta}\right)
+\left(\frac{\partial(N|I_1,\dots,I_N)}{\partial\boldsymbol{\beta}}\right)
+\right|_{\boldsymbol{\beta}=\hat{\boldsymbol{\beta}}}}
+term full derivation can be found at \code{\link[singleRcapture:estimatePopsize]{singleRcapture::estimatePopsize()}}
+Only used for non-standard \code{vglmff} class object i.e.
+for anything other than \code{c("posbinomial", "oiposbinomial", "oapospoisson",
+"pospoisson", "oipospoisson", "posnegbinomial")} this will be expanded in
+future versions.}
+}
+\value{
+An object with following \code{S3} classes:
+\code{"singleRforeign", "singleRStaticCountData", "singleR"}
+containing:
+\itemize{
+\item{\code{foreignObject} - the \code{formula} object provided on call. This is necessary for proper functionality of methods.}
+\item{\code{call} - call made to create object.}
+\item{\code{sizeObserved} - number of observed units.}
+\item{\code{populationSize} - a \code{popSizeEstResults} class object containing population size estimates. Can be extracted via \code{\link[singleRcapture:popSizeEst]{singleRcapture::popSizeEst()}}}
+\item{\code{pacakgeInfo} - character specifying package and function which created \code{formula} object.}
+}
 }
 \description{
-TODO
+\code{estimatePopsize} methods currently implemented for the
+\code{"zerotrunc", "vlgm", "vgam"} classes from \code{"countreg", "VGAM"}
+packages. It is assumed that the response vector (i.e. the dependent variable)
+corresponds to the number of times a given unit was observed in the data.
+
+Population size is then usually estimated by Horvitz-Thompson type estimator:
+
+\mjsdeqn{\hat{N} = \sum_{k=1}^{N}\frac{I_{k}}{\mathbb{P}(Y_{k}>0)} =
+\sum_{k=1}^{N_{obs}}\frac{1}{1-\mathbb{P}(Y_{k}=0)}}
+
+where \mjseqn{I_{k}=I_{Y_{k} > 0}} are indicator variables, with value 1 if
+kth unit was observed at least once and 0 otherwise. The full estimate is
+obtained after plugging model based estimate for
+\mjseqn{\frac{1}{\mathbb{P}(Y_{k}>0)}}.
 }
 \details{
 \loadmathjax
 
-TODO
+Most of the theory on single source capture-recapture (SSCR) is contained in
+details of help file \code{\link[singleRcapture:estimatePopsize]{singleRcapture::estimatePopsize()}}.
+
+As for the implementation itself
+}
+\seealso{
+\code{\link[singleRcapture:estimatePopsize]{singleRcapture::estimatePopsize()}} - For original implementation and more theory.
+\code{\link[=controlEstPopCountreg]{controlEstPopCountreg()}} and \code{\link[=controlEstPopVglm]{controlEstPopVglm()}} - For controls for each
+\code{estimatePopsize} method.
 }

@@ -16,7 +16,7 @@ future the same for ratio regression models)
 
 ### Quick demo
 
-Utilising additive models when effect is non linear:
+Utilizing additive models when effect is non linear:
 
 ``` r
 library(VGAM)

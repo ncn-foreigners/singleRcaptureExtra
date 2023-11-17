@@ -14,15 +14,15 @@ estimatePopsize.zerotrunc <- function(formula,
                                       naAction = NULL,
                                       popVar   = c("analytic",
                                                    "bootstrap"),
-                                      controlCountreg = NULL,
+                                      control = NULL,
                                       ...) {
   ### TODO adjust for weights being counts
-  if (is.null(controlCountreg)) controlCountreg <- controlCountreg()
+  if (is.null(control)) control <- controlEstPopCountreg()
   if (missing(popVar)) popVar <- "analytic"
 
   sizeObserved <- stats::nobs(formula)
   eta <- cbind(as.numeric(log(predict(formula, type = "count"))))
-  signlevel <- controlCountreg$alpha
+  signlevel <- control$alpha
   sc <- qnorm(p = 1 - signlevel / 2)
 
   if (formula$dist == "negbin") {
@@ -42,7 +42,7 @@ estimatePopsize.zerotrunc <- function(formula,
     )
   }
 
-  trcount <- controlCountreg$trcount
+  trcount <- control$trcount
 
   family <- switch (formula$dist,
     "poisson"   = singleRcapture::ztpoisson(),
@@ -93,8 +93,8 @@ estimatePopsize.zerotrunc <- function(formula,
           pointEstimate = N,
           variance = variation,
           confidenceInterval = confidenceInterval,
-          boot = if (isTRUE(controlCountreg$keepbootStat)) strappedStatistic else NULL,
-          control = list(alpha = signlevel)
+          boot = NULL,
+          control = control
         ),
         class = "popSizeEstResults"
       )
@@ -116,9 +116,9 @@ estimatePopsize.zerotrunc <- function(formula,
       X <- model.matrix(formula)
 
 
-      if (controlCountreg$cores > 1) {
+      if (control$cores > 1) {
         funBoot <- switch(
-          controlCountreg$bootType,
+          control$bootType,
           "parametric"     = singleRcapture:::parBootMultiCore,
           "semiparametric" = singleRcapture:::semparBootMultiCore,
           "nonparametric"  = singleRcapture:::noparBootMultiCore
@@ -131,10 +131,10 @@ estimatePopsize.zerotrunc <- function(formula,
             c(stats::coef(formula), log(formula$theta)),
           weights  = wg,
           trcount  = trcount,
-          numboot  = controlCountreg$B,
-          cores    = controlCountreg$cores,
-          method   = controlCountreg$fittingMethod,
-          controlBootstrapMethod = controlCountreg$bootstrapFitcontrol,
+          numboot  = control$B,
+          cores    = control$cores,
+          method   = control$fittingMethod,
+          controlBootstrapMethod = control$bootstrapFitcontrol,
           Xvlm = if (formula$dist != "negbin") X else
             singleRcapture:::singleRinternalGetXvlmMatrix(
               parNames = c("lambda", "theta"),
@@ -147,7 +147,7 @@ estimatePopsize.zerotrunc <- function(formula,
         )
       } else {
         funBoot <- switch(
-          controlCountreg$bootType,
+          control$bootType,
           "parametric"     = singleRcapture:::parBoot,
           "semiparametric" = singleRcapture:::semparBoot,
           "nonparametric"  = singleRcapture:::noparBoot
@@ -160,9 +160,9 @@ estimatePopsize.zerotrunc <- function(formula,
             c(stats::coef(formula), log(formula$theta)),
           weights  = wg,
           trcount  = trcount,
-          numboot  = controlCountreg$B,
-          method   = controlCountreg$fittingMethod,
-          controlBootstrapMethod = controlCountreg$bootstrapFitcontrol,
+          numboot  = control$B,
+          method   = control$fittingMethod,
+          controlBootstrapMethod = control$bootstrapFitcontrol,
           Xvlm = if (formula$dist != "negbin") X else
             singleRcapture:::singleRinternalGetXvlmMatrix(
               parNames = c("lambda", "theta"),
@@ -172,8 +172,8 @@ estimatePopsize.zerotrunc <- function(formula,
             ),
           modelFrame = modelFrame,
           offset     = offset,
-          visT       = controlCountreg$bootstrapVisualTrace,
-          trace      = controlCountreg$traceBootstrapSize
+          visT       = control$bootstrapVisualTrace,
+          trace      = control$traceBootstrapSize
         )
       }
       if (N < stats::quantile(strappedStatistic, .05)) {
@@ -190,12 +190,12 @@ estimatePopsize.zerotrunc <- function(formula,
       if (!is.finite(variation))
         stop("Computed variance is infinite/NaN/NULL")
       sd <- sqrt(variation)
-      if (controlCountreg$confType == "percentilic") {
+      if (control$confType == "percentilic") {
         confidenceInterval <- stats::quantile(strappedStatistic,
                                               c(signlevel / 2,
                                                 1 - signlevel / 2))
         names(confidenceInterval) <- c("lowerBound", "upperBound")
-      } else if (controlCountreg$confType == "normal") {
+      } else if (control$confType == "normal") {
         G <- exp(sc * sqrt(log(1 + variation / ((N - sizeObserved) ^ 2))))
 
         confidenceInterval <- data.frame(t(data.frame(
@@ -206,7 +206,7 @@ estimatePopsize.zerotrunc <- function(formula,
                                            sizeObserved),
                           upperBound = sizeObserved + (N - sizeObserved) * G)
         )))
-      } else if (controlCountreg$confType == "basic") {
+      } else if (control$confType == "basic") {
         confidenceInterval <- 2 * N - stats::quantile(strappedStatistic,
                                                       c(1 - signlevel / 2,
                                                         signlevel / 2))
@@ -218,8 +218,8 @@ estimatePopsize.zerotrunc <- function(formula,
           pointEstimate = N,
           variance = variation,
           confidenceInterval = confidenceInterval,
-          boot = if (isTRUE(controlCountreg$keepbootStat)) strappedStatistic else NULL,
-          control = list(alpha = signlevel)
+          boot = if (isTRUE(control$keepbootStat)) strappedStatistic else NULL,
+          control = control
         ),
         class = "popSizeEstResults"
       )
@@ -232,7 +232,6 @@ estimatePopsize.zerotrunc <- function(formula,
       call            = match.call(),
       sizeObserved    = sizeObserved,
       populationSize  = POP,
-      controlForeign  = controlCountreg,
       pacakgeInfo     = "countreg::zerotrunc"
     ),
     class = c("singleRforeign", "singleRStaticCountData", "singleR")
