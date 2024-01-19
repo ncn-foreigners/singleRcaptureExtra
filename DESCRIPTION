@@ -20,9 +20,10 @@ Depends:
 Imports: 
     stats,
     mathjaxr,
-    doParallel,
+    doSNOW,
     foreach,
     parallel,
+    progress,
     VGAM,
     countreg,
     VGAMdata

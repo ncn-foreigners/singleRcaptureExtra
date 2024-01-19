@@ -73,20 +73,34 @@ controlEstPopCountreg <- function(trcount = 0,
 }
 
 
-#' Title
+#' @title Control parameters for \code{vglm} class
 #'
-#' @param alpha a
-#' @param bootType a
-#' @param B a
-#' @param confType a
-#' @param keepbootStat a
-#' @param traceBootstrapSize a
-#' @param bootstrapVisualTrace a
-#' @param bootstrapFitcontrol a
-#' @param sd a
-#' @param cores a
+#' @param alpha Numeric value indicating significance level. By default \code{.05}.
+#' @param bootType Type of bootstrap by default \code{parametric}. For more detail
+#' see [singleRcapture::estimatePopsize()].
+#' @param B Number of bootstrap samples to be drawn. By default \code{500}.
+#' @param confType Type of confidence interval to use for bootstrap variance
+#' estimation.
+#' @param keepbootStat Boolean value indicating whether to keep statistics from
+#' bootstrap samples.
+#' @param traceBootstrapSize Boolean value indicating whether to print sample
+#' sizes (and estimate population sizes) on each iteration of bootstrap
+#' algorithm. Only matters when \code{cores = 1}.
+#' @param bootstrapVisualTrace Logical value indicating whether to make an
+#' in real time plot of estimated statistics for \code{cores = 1} or whether
+#' to make progress bar when \code{cores > 1}.
+#' @param bootstrapFitcontrol A [VGAM::vglm.control()] type object controlling
+#' behaviour of \code{vglm.fit} function used for fitting.
+#' @param sd Type of standard error estimate.
+#' @param cores Number of cores to use be default \code{1}.
 #'
-#' @return a
+#' @seealso
+#' [singleRcapture::estimatePopsize()] for details on bootstrap
+#' [estimatePopsize.vglm()] for details on computation
+#' [singleRcapture::controlPopVar()] for comparison with \code{singleRcapture}
+#' [VGAM::vglm.control()] for fitting controls in bootstrap
+#' [VGAM::vglm.fit()] for information on fitting algorithm
+#' @return A list with desired control specifications.
 #' @export
 controlEstPopVglm <- function(alpha = 0.05,
                               bootType = c("parametric",

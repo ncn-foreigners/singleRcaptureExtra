@@ -54,12 +54,13 @@ estimatePopsize.zerotrunc <- function(formula,
     "analytic" = {
       strappedStatistic <- "No bootstrap performed"
       N <- family$pointEst(pw = wg, eta = eta)
-      if (formula$dist != "negbin") {X <- model.matrix(formula)} else {
-        X <- rbind(cbind(model.matrix(formula), 0),
-                   cbind(matrix(0, nrow = length(wg),
-                                ncol = length(stats::coef(formula))), 1))
-        attr(X, "hwm") <- cbind(length(stats::coef(formula)), 1)
-      }
+      X <- if (formula$dist != "negbin") model.matrix(formula) else
+        internalGetXvlmMatrixFixed(
+          parNames = c("lambda", "theta"),
+          formulas = list(formula$formula, ~ 1),
+          X        = model.frame(formula)
+        )
+
 
       variation <- as.numeric(family$popVar(
         eta = eta,
@@ -137,7 +138,7 @@ estimatePopsize.zerotrunc <- function(formula,
           method   = control$fittingMethod,
           controlBootstrapMethod = control$bootstrapFitcontrol,
           Xvlm = if (formula$dist != "negbin") X else
-            singleRcapture:::singleRinternalGetXvlmMatrix(
+            internalGetXvlmMatrixFixed(
               parNames = c("lambda", "theta"),
               formulas = singleRcapture:::singleRinternalMergeFormulas(
                 list(formula$formula, ~ 1)
@@ -165,7 +166,7 @@ estimatePopsize.zerotrunc <- function(formula,
           method   = control$fittingMethod,
           controlBootstrapMethod = control$bootstrapFitcontrol,
           Xvlm = if (formula$dist != "negbin") X else
-            singleRcapture:::singleRinternalGetXvlmMatrix(
+            internalGetXvlmMatrixFixed(
               parNames = c("lambda", "theta"),
               formulas = singleRcapture:::singleRinternalMergeFormulas(
                 list(formula$formula, ~ 1)

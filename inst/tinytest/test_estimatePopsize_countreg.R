@@ -65,3 +65,5 @@ expect_true(
         est3$populationSize$confidenceInterval[,2] > 2400))
 )
 
+expect_silent(est1.1 <- estimatePopsize(mm1, popVar = "bootstrap"))
+expect_silent(est2.1 <- estimatePopsize(mm2))

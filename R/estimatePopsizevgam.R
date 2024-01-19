@@ -212,7 +212,6 @@ estimatePopsize.vgam <- function(formula,
         class = "popSizeEstResults"
       )},
     "bootstrap" = {
-      stop("vgam class bootstrap is not yet implemented")
       N <- sum(wg / (1 - PW))
       TT <- bootVGAM(formula, B = 500, trace = FALSE,
                      N = N, visT = TRUE, bootType = "nonparametric")

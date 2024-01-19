@@ -271,14 +271,26 @@ estimatePopsize.vglm <- function(formula,
       )
 
       # Bootstrap call
-      strappedStatistic <- bootVGLM(
-        formula,
-        B = control$B,
-        trace = control$traceBootstrapSize,
-        N = N,
-        visT = control$bootstrapVisualTrace,
-        bootType = control$bootType
-      )
+      if (control$cores == 1) {
+        strappedStatistic <- bootVGLM(
+          formula,
+          B = control$B,
+          trace = control$traceBootstrapSize,
+          N = N,
+          visT = control$bootstrapVisualTrace,
+          bootType = control$bootType
+        )
+      } else {
+        strappedStatistic <- multiCoreBootVGLM(
+          formula,
+          B = control$B,
+          trace = control$traceBootstrapSize,
+          N = N,
+          visT = control$bootstrapVisualTrace,
+          bootType = control$bootType,
+          cores = control$cores
+        )
+      }
       N <- sum(N)
 
 

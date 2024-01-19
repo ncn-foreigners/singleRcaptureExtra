@@ -2,7 +2,7 @@
 % Please edit documentation in R/controls.R
 \name{controlEstPopVglm}
 \alias{controlEstPopVglm}
-\title{Title}
+\title{Control parameters for \code{vglm} class}
 \usage{
 controlEstPopVglm(
   alpha = 0.05,
@@ -18,29 +18,44 @@ controlEstPopVglm(
 )
 }
 \arguments{
-\item{alpha}{a}
+\item{alpha}{Numeric value indicating significance level. By default \code{.05}.}
 
-\item{bootType}{a}
+\item{bootType}{Type of bootstrap by default \code{parametric}. For more detail
+see \code{\link[singleRcapture:estimatePopsize]{singleRcapture::estimatePopsize()}}.}
 
-\item{B}{a}
+\item{B}{Number of bootstrap samples to be drawn. By default \code{500}.}
 
-\item{confType}{a}
+\item{confType}{Type of confidence interval to use for bootstrap variance
+estimation.}
 
-\item{keepbootStat}{a}
+\item{keepbootStat}{Boolean value indicating whether to keep statistics from
+bootstrap samples.}
 
-\item{traceBootstrapSize}{a}
+\item{traceBootstrapSize}{Boolean value indicating whether to print sample
+sizes (and estimate population sizes) on each iteration of bootstrap
+algorithm. Only matters when \code{cores = 1}.}
 
-\item{bootstrapVisualTrace}{a}
+\item{bootstrapVisualTrace}{Logical value indicating whether to make an
+in real time plot of estimated statistics for \code{cores = 1} or whether
+to make progress bar when \code{cores > 1}.}
 
-\item{bootstrapFitcontrol}{a}
+\item{bootstrapFitcontrol}{A \code{\link[VGAM:vglm.control]{VGAM::vglm.control()}} type object controlling
+behaviour of \code{vglm.fit} function used for fitting.}
 
-\item{sd}{a}
+\item{sd}{Type of standard error estimate.}
 
-\item{cores}{a}
+\item{cores}{Number of cores to use be default \code{1}.}
 }
 \value{
-a
+A list with desired control specifications.
 }
 \description{
-Title
+Control parameters for \code{vglm} class
+}
+\seealso{
+\code{\link[singleRcapture:estimatePopsize]{singleRcapture::estimatePopsize()}} for details on bootstrap
+\code{\link[=estimatePopsize.vglm]{estimatePopsize.vglm()}} for details on computation
+\code{\link[singleRcapture:controlPopVar]{singleRcapture::controlPopVar()}} for comparison with \code{singleRcapture}
+\code{\link[VGAM:vglm.control]{VGAM::vglm.control()}} for fitting controls in bootstrap
+\code{\link[VGAM:notdocumentedyet]{VGAM::vglm.fit()}} for information on fitting algorithm
 }

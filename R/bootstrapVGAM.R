@@ -16,9 +16,10 @@ bootVGAM <- function(object,
   #X  <- model.matrix(object, "vlm")
   X  <- model.matrix(object, "lm")
   #lmMatAsgn <- attr(object, "assign")
+  mf <- model.frame(object)
   eta <- object@predictors
   NPRED <- NCOL(eta)
-  y <- model.response(model.frame(object))
+  y <- model.response(mf)
   constraints <- constraints(object, type = "term")
 
   if (length(wt) != NROW(eta)) {
