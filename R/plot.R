@@ -143,8 +143,10 @@ plot.singleRforeign <- function(x,
       )
     },
     strata = {
+      stop("not yet done")
       if (missing(confIntStrata)) confIntStrata <- "logNormal"
-      result <- stratifyPopsize(x, ...)
+      #result <- singleRcapture::stratifyPopsize(x, ...)
+      result <- NULL
       est <- result[, 2]
       obs <- result[, 1]
       nm <- result[, 9]

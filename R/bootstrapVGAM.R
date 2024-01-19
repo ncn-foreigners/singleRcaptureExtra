@@ -8,6 +8,7 @@ bootVGAM <- function(object,
                                   "semiparametric",
                                   "nonparametric"),
                      ...) {
+  stop("Not yet implemented")
   strappedStatistic <- vector("numeric", length = B)
 
   n   <- nobs(object)
@@ -108,7 +109,7 @@ bootVGAM <- function(object,
     offsetStrap  <- offset[strap, , drop = FALSE]
     mfStrap <- mf[strap, , drop = FALSE]
     xStrap <- model.matrix(object@terms, mfStrap)
-    attr(xStrap, "assign") <- VGAM:::attrassigndefault(xStrap, attr(mfStrap, "terms"))
+    #attr(xStrap, "assign") <- VGAM:::attrassigndefault(xStrap, attr(mfStrap, "terms"))
 
     if (are.sm.os.terms || are.sm.ps.terms) {
       assignx <- attr(xStrap, "assign")

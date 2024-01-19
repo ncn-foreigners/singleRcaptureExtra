@@ -133,6 +133,7 @@ print.singleRforeign <- function(x, ...) {
 #'
 #' @param model a
 #' @param cores a
+#' @param trace asd
 #' @param ... b
 #' @importFrom singleRcapture dfpopsize
 #' @method dfpopsize singleRadditive
@@ -140,6 +141,7 @@ print.singleRforeign <- function(x, ...) {
 #' @export
 dfpopsize.singleRadditive <- function(model,
                                       cores = 1L,
+                                      trace = FALSE,
                                       ...) {
   # add cores
   tryCatch(
@@ -153,8 +155,11 @@ dfpopsize.singleRadditive <- function(model,
 
   if (cores > 1) {
     cl <- parallel::makeCluster(cores)
-    doParallel::registerDoParallel(cl)
+    doSNOW::registerDoSNOW(cl)
     on.exit(parallel::stopCluster(cl))
+    pb <- progress::progress_bar$new(total = NROW(mf))
+
+    opts <- if (trace) list(progress = \(n) pb$tick()) else NULL
 
     res <- foreach::`%dopar%`(
       obj = foreach::foreach(
@@ -162,7 +167,8 @@ dfpopsize.singleRadditive <- function(model,
         .combine = c,
         ## TODO:: figure out something that requires less maintenance
         .packages = c("VGAM", "singleRcapture"),
-        .export = c("estimatePopsize.vgam")
+        .export = c("estimatePopsize.vgam"),
+        .options.snow = opts
       ),
       ex = {
         print(cll)
@@ -176,6 +182,7 @@ dfpopsize.singleRadditive <- function(model,
     res <- vector(mode = "numeric", length = as.integer(NROW(mf)))
 
     for (k in 1:NROW(mf)) {
+      if (trace) cat("Current itteration: ", k, "\n", sep = "")
       dd <- mf[-k, , drop = FALSE]
       cll$data <- as.symbol("dd")
       est <- eval(cll, envir = environment())

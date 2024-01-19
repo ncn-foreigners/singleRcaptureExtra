@@ -1,7 +1,7 @@
 library(countreg)
 
 # generate data
-# set.seed(123)
+# set.seed(123456)
 # N <- 2400
 # x1 <- rbinom(n = N, prob = .5, size = 1)
 # x2 <- runif(n = N)

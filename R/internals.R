@@ -33,8 +33,8 @@ internalGetXvlmMatrixFixed <- function(X, formulas, parNames, contrasts = NULL) 
           terms,
           data = X
         )
-        print(Xses[[k]] |> head())
-        stop("abc")
+        # print(Xses[[k]] |> head())
+        # stop("abc")
       }
     } else {
       Xses[[k]] <- model.matrix(

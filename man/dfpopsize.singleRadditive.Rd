@@ -4,12 +4,14 @@
 \alias{dfpopsize.singleRadditive}
 \title{AA}
 \usage{
-\method{dfpopsize}{singleRadditive}(model, cores = 1L, ...)
+\method{dfpopsize}{singleRadditive}(model, cores = 1L, trace = FALSE, ...)
 }
 \arguments{
 \item{model}{a}
 
 \item{cores}{a}
+
+\item{trace}{asd}
 
 \item{...}{b}
 }

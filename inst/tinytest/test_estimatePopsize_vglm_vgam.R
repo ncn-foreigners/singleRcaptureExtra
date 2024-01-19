@@ -137,8 +137,33 @@ expect_error(dfbeta(obj))
 expect_silent(model.matrix(obj))
 
 if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "true")) {
-  obj4 <- vglm(TOTAL_SUB ~ .,
-               family = posnegbinomial(), data = farmsubmission)
+  expect_silent(
+    AA1.1 <- estimatePopsize(obj1, popVar = "bootstrap",
+                             control = controlEstPopVglm(
+                               B = 50,
+                               bootstrapFitcontrol = vglm.control(epsilon = .01),
+                               cores = 2
+                             ))
+  )
 
-  expect_silent(AA4 <- estimatePopsize(obj4))
+  expect_silent(
+    AA1.2 <- estimatePopsize(
+      obj1, popVar = "bootstrap",
+      control = controlEstPopVglm(bootType = "semiparametric",
+                                  B = 50,
+                                  bootstrapFitcontrol = vglm.control(epsilon = .01),
+                                  cores = 2)
+    )
+  )
+
+
+  expect_silent(
+    AA1.3 <- estimatePopsize(
+      obj1, popVar = "bootstrap",
+      control = controlEstPopVglm(bootType = "parametric",
+                                  B = 50,
+                                  bootstrapFitcontrol = vglm.control(epsilon = .01),
+                                  cores = 2)
+    )
+  )
 }

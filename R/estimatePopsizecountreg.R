@@ -145,7 +145,8 @@ estimatePopsize.zerotrunc <- function(formula,
               ), X = modelFrame
             ),
           modelFrame = modelFrame,
-          offset     = offset
+          offset     = offset,
+          weightsFlag = FALSE
         )
       } else {
         funBoot <- switch(
@@ -175,7 +176,8 @@ estimatePopsize.zerotrunc <- function(formula,
           modelFrame = modelFrame,
           offset     = offset,
           visT       = control$bootstrapVisualTrace,
-          trace      = control$traceBootstrapSize
+          trace      = control$traceBootstrapSize,
+          weightsFlag = FALSE
         )
       }
       if (N < stats::quantile(strappedStatistic, .05)) {
