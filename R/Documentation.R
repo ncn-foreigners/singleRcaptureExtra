@@ -81,3 +81,41 @@ NULL
 #' [countreg::zerotrunc()] - for \code{zerotrunc} class.
 #' @name foreignMethods
 NULL
+
+
+#' @title Control parameters for \code{vgam}, \code{vglm}, \code{countreg} class
+#'
+#' @param alpha Numeric value indicating significance level. By default \code{.05}.
+#' @param bootType Type of bootstrap by default \code{parametric}. For more detail
+#' see [singleRcapture::estimatePopsize()].
+#' @param B Number of bootstrap samples to be drawn. By default \code{500}.
+#' @param confType Type of confidence interval to use for bootstrap variance
+#' estimation.
+#' @param keepbootStat Boolean value indicating whether to keep statistics from
+#' bootstrap samples.
+#' @param traceBootstrapSize Boolean value indicating whether to print sample
+#' sizes (and estimate population sizes) on each iteration of bootstrap
+#' algorithm. Only matters when \code{cores = 1}.
+#' @param bootstrapVisualTrace Logical value indicating whether to make an
+#' in real time plot of estimated statistics for \code{cores = 1} or whether
+#' to make progress bar when \code{cores > 1}.
+#' @param bootstrapFitcontrol A [VGAM::vglm.control()] type object controlling
+#' behaviour of \code{vglm.fit} function used for fitting.
+#' @param sd Type of standard error estimate.
+#' @param cores Number of cores to use be default \code{1}.
+#' @param fittingMethod For \code{countreg} class which fitting algorithm from
+#' \code{singleRcapture} to use (bootstrap for \code{countreg} class calls
+#' bootstrap from \code{singleRcapture}).
+#' @param trcount todo
+#' @param data for \code{vgam} class only, a original \code{data.frame} object
+#' on which model was fitted. Only required for bootstrap.
+#'
+#' @seealso
+#' [singleRcapture::estimatePopsize()] for details on bootstrap and fitting algorithms
+#' [estimatePopsize.vglm()] for details on computation
+#' [singleRcapture::controlPopVar()] for comparison with \code{singleRcapture}
+#' [VGAM::vglm.control()] for fitting controls in bootstrap
+#' [VGAM::vglm.fit()] for information on fitting algorithm
+#' @return A list with desired control specifications.
+#' @name controls
+NULL

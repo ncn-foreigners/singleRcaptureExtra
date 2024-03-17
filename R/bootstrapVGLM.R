@@ -223,10 +223,6 @@ multiCoreBootVGLM <- function(object,
                               ...) {
   cl <- parallel::makeCluster(cores)
 
-  pb <- progress::progress_bar$new(total = B)
-
-  opts <- if (visT) list(progress = \(n) pb$tick()) else NULL
-
   n   <- nobs(object)
   wt  <- object@prior.weights
 
@@ -259,15 +255,14 @@ multiCoreBootVGLM <- function(object,
   contr <- N
   N <- sum(N)
 
-  doSNOW::registerDoSNOW(cl)
+  doParallel::registerDoParallel(cl)
   on.exit(parallel::stopCluster(cl))
 
   strappedStatistic <- foreach::`%dopar%`(
     obj = foreach::foreach(
       k = 1:B,
       .combine = c,
-      .packages = c("VGAM", "singleRcapture"),
-      .options.snow = opts
+      .packages = c("VGAM", "singleRcapture")
     ),
     ex  = {
       theta <- NULL

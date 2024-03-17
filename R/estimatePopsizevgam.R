@@ -23,6 +23,20 @@ estimatePopsize.vgam <- function(formula,
                                  derivFunc = NULL,
                                  ...) {
   if (missing(popVar)) popVar <- "analytic"
+
+  if (popVar == "bootstrap" && is.null(control$data)) {
+    tryCatch(
+      expr = {control$data <- eval(formula@call$data)},
+      error = function (e) {
+        stop("Bootstrap with vgam class needs a data argument in control.vgam to work. An attempt was made to manually evaluate data slot from vgam class object call but it failed.")
+      }
+    )
+    if (is.null(control$data) | !is.data.frame(control$data)) {
+      stop("Bootstrap with vgam class needs a data argument in control.vgam to work. An attempt was made to manually evaluate data slot from vgam class object call but it failed.")
+    } else {
+      message("Bootstrap with vgam class needs a data argument in control.vgam to work. This data argument was manually evaluated from call of vgam class object.")
+    }
+  }
   sizeObserved <- nobs(formula)
   # signlevel <- control$alpha
   # trcount <- control$trcount
@@ -53,7 +67,7 @@ estimatePopsize.vgam <- function(formula,
         )
         return(exp(-lambda))
       } else {
-        stop("estimatePopsize.vglm method is only for objects with family slots with possibility of type.fitted = prob0 (and a few select ones)")
+        stop("estimatePopsize.vgam method is only for objects with family slots with possibility of type.fitted = prob0 (and a few select ones)")
       }
     }
   )

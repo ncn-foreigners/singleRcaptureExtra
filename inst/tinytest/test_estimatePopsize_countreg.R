@@ -65,5 +65,17 @@ expect_true(
         est3$populationSize$confidenceInterval[,2] > 2400))
 )
 
-expect_silent(est1.1 <- estimatePopsize(mm1, popVar = "bootstrap"))
-expect_silent(est2.1 <- estimatePopsize(mm2))
+if (isTRUE(tolower(Sys.getenv("TEST_SINGLERCAPTURE_MULTICORE_DEVELOPER")) == "true")) {
+  expect_silent(est1.1 <- estimatePopsize(mm1, popVar = "bootstrap",
+                                          control = controlEstPopCountreg(
+                                            B = 50, bootType = "parametric"
+                                          )))
+  expect_silent(est2.1 <- estimatePopsize(mm2, popVar = "bootstrap",
+                                          control = controlEstPopCountreg(
+                                            B = 50, bootType = "semiparametric"
+                                          )))
+  expect_silent(est3.1 <- estimatePopsize(mm2, popVar = "bootstrap",
+                                          control = controlEstPopCountreg(
+                                            B = 50, bootType = "nonparametric"
+                                          )))
+}

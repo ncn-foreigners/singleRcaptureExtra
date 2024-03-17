@@ -6,7 +6,7 @@ Authors@R:
              family = "Chlebicki",
              role = c("aut", "cre"),
              email = "piochl@st.amu.edu.pl"))
-Description: What the package does (one paragraph).
+Description: A lightweight extention to singleRcapture package.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -16,14 +16,13 @@ RdMacros: mathjaxr
 URL: https://github.com/ncn-foreigners/singleRcaptureExtra
 BugReports: https://github.com/ncn-foreigners/singleRcaptureExtra/issues
 Depends: 
-    singleRcapture (>= 0.2.1)
+    singleRcapture (>= 0.2.1.2)
 Imports: 
     stats,
     mathjaxr,
-    doSNOW,
+    doParallel,
     foreach,
     parallel,
-    progress,
     VGAM,
     countreg,
     VGAMdata

@@ -43,7 +43,7 @@ summary.singleRforeign <- function(object,
 #' @importClassesFrom VGAM vgam
 #' @export
 print.summarysingleRforeign <- function(x,
-                                        summaryForeign = FALSE,
+                                        summaryForeign = TRUE,
                                         ...) {
   cat(
     "\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"),
@@ -155,11 +155,8 @@ dfpopsize.singleRadditive <- function(model,
 
   if (cores > 1) {
     cl <- parallel::makeCluster(cores)
-    doSNOW::registerDoSNOW(cl)
+    doParallel::registerDoParallel(cl)
     on.exit(parallel::stopCluster(cl))
-    pb <- progress::progress_bar$new(total = NROW(mf))
-
-    opts <- if (trace) list(progress = \(n) pb$tick()) else NULL
 
     res <- foreach::`%dopar%`(
       obj = foreach::foreach(
@@ -167,11 +164,9 @@ dfpopsize.singleRadditive <- function(model,
         .combine = c,
         ## TODO:: figure out something that requires less maintenance
         .packages = c("VGAM", "singleRcapture"),
-        .export = c("estimatePopsize.vgam"),
-        .options.snow = opts
+        .export = c("estimatePopsize.vgam")
       ),
       ex = {
-        print(cll)
         dd <- mf[-k, , drop = FALSE]
         cll$data <- as.symbol("dd")
         est <- eval(cll, envir = environment())
