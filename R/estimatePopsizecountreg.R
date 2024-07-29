@@ -236,7 +236,8 @@ estimatePopsize.zerotrunc <- function(formula,
       call            = match.call(),
       sizeObserved    = sizeObserved,
       populationSize  = POP,
-      pacakgeInfo     = "countreg::zerotrunc"
+      pacakgeInfo     = "countreg::zerotrunc",
+      derivFunc       = NULL
     ),
     class = c("singleRforeign", "singleRStaticCountData", "singleR")
   )

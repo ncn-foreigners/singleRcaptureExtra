@@ -119,3 +119,28 @@ NULL
 #' @return A list with desired control specifications.
 #' @name controls
 NULL
+
+#' @title Observed and fitted marginal Frequencies
+#' @author Piotr Chlebicki
+#'
+#' @param object object of \code{singleR} class.
+#' @param includezeros logical value indicating whether to include one counts in the zero-one truncated models.
+#' @param range optional argument specifying range of selected Y values.
+#' @param ... currently does nothing.
+#'
+#' @return A list with observed name of the fitted model family degrees of freedom and observed and fitted marginal frequencies.
+#' @seealso [singleRcapture::marginalFreq()] -- for original \code{singleRcapture} implementation. [estimatePopsize.vgam()]
+#' @name marginals
+NULL
+
+#' AA
+#'
+#' @param model a
+#' @param cores a
+#' @param trace asd
+#' @param dfbeta a
+#' @param ... b
+#'
+#' @return a
+#' @name dfpop
+NULL

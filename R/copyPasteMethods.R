@@ -6,7 +6,8 @@
 #' @method predict singleRforeign
 #' @importFrom utils methods
 #' @exportS3Method
-predict.singleRforeign <- function(object, ...) predict(object$foreignObject, ...)
+predict.singleRforeign <- function(object, ...)
+  predict(object$foreignObject, ...)
 
 #' @importClassesFrom VGAM vglm
 #' @importClassesFrom VGAM vgam
@@ -15,7 +16,8 @@ predict.singleRforeign <- function(object, ...) predict(object$foreignObject, ..
 #' @method vcov singleRforeign
 #' @importFrom utils methods
 #' @exportS3Method
-vcov.singleRforeign <- function(object, ...) vcov(object$foreignObject, ...)
+vcov.singleRforeign <- function(object, ...)
+  vcov(object$foreignObject, ...)
 
 #' @importClassesFrom VGAM vglm
 #' @importClassesFrom VGAM vgam
@@ -25,8 +27,13 @@ vcov.singleRforeign <- function(object, ...) vcov(object$foreignObject, ...)
 #' @importFrom utils methods
 #' @exportS3Method
 hatvalues.singleRforeign <- function(model, ...) {
-  stopifnot("No hatvalues method for foreign object or package needs to be loaded" =
-              length(suppressWarnings(intersect(methods(class = class(model$foreignObject)), methods("hatvalues")))) > 0)
+  stopifnot(
+    "No hatvalues method for foreign object or package needs to be loaded" =
+    length(suppressWarnings(intersect(
+      methods(class = class(model$foreignObject)),
+      methods("hatvalues")
+    ))) > 0
+  )
 
   hatvalues(model$foreignObject, ...)
 }
@@ -39,11 +46,25 @@ hatvalues.singleRforeign <- function(model, ...) {
 #' @importFrom utils methods
 #' @exportS3Method
 dfbeta.singleRforeign <- function(model, ...) {
-  stopifnot("No dfbeta method for foreign object or package needs to be loaded" =
-              length(suppressWarnings(intersect(methods(class = class(model$foreignObject)), methods("dfbeta")))) > 0)
+  stopifnot(
+    "No dfbeta method for foreign object or package needs to be loaded" =
+      length(suppressWarnings(intersect(
+        methods(class = class(model$foreignObject)),
+        methods("dfbeta")
+      ))) > 0
+  )
 
   dfbeta(model$foreignObject, ...)
 }
+
+#' @importClassesFrom VGAM vglm
+#' @importClassesFrom VGAM vgam
+#' @importMethodsFrom VGAM terms
+#' @importFrom stats terms
+#' @method terms singleRforeign
+#' @exportS3Method
+terms.singleRforeign <- function(object, ...)
+  terms(model.frame(object), ...)
 
 #' @importClassesFrom VGAM vglm
 #' @importClassesFrom VGAM vgam
@@ -51,7 +72,8 @@ dfbeta.singleRforeign <- function(model, ...) {
 #' @importFrom stats residuals
 #' @method residuals singleRforeign
 #' @exportS3Method
-residuals.singleRforeign <- function(object, ...) residuals(object$foreignObject, ...)
+residuals.singleRforeign <- function(object, ...)
+  residuals(object$foreignObject, ...)
 
 #' @importClassesFrom VGAM vglm
 #' @importClassesFrom VGAM vgam
@@ -60,8 +82,13 @@ residuals.singleRforeign <- function(object, ...) residuals(object$foreignObject
 #' @importFrom utils methods
 #' @exportS3Method
 cooks.distance.singleRforeign <- function(model, ...) {
-  stopifnot("No cooks.distance method for foreign object or package needs to be loaded" =
-              length(suppressWarnings(intersect(methods(class = class(model$foreignObject)), methods("cooks.distance")))) > 0)
+  stopifnot(
+    "No cooks.distance method for foreign object or package needs to be loaded" =
+    length(suppressWarnings(intersect(
+      methods(class = class(model$foreignObject)),
+      methods("cooks.distance")
+    ))) > 0
+  )
 
   cooks.distance(model$foreignObject, ...)
 }
@@ -73,8 +100,13 @@ cooks.distance.singleRforeign <- function(model, ...) {
 #' @importFrom utils methods
 #' @exportS3Method
 family.singleRforeign <- function(object, ...) {
-  stopifnot("No family method for foreign object or package needs to be loaded" =
-              length(suppressWarnings(intersect(methods(class = class(object$foreignObject)), methods("family")))) > 0)
+  stopifnot(
+    "No family method for foreign object or package needs to be loaded" =
+    length(suppressWarnings(intersect(
+      methods(class = class(object$foreignObject)),
+      methods("family")
+    ))) > 0
+  )
 
   family(object$foreignObject, ...)
 }
@@ -86,7 +118,8 @@ family.singleRforeign <- function(object, ...) {
 #' @method AIC singleRforeign
 #' @importFrom utils methods
 #' @exportS3Method
-AIC.singleRforeign <- function(object, ...) AIC(object$foreignObject, ...)
+AIC.singleRforeign <- function(object, ...)
+  AIC(object$foreignObject, ...)
 
 #' @importClassesFrom VGAM vglm
 #' @importClassesFrom VGAM vgam
@@ -95,7 +128,8 @@ AIC.singleRforeign <- function(object, ...) AIC(object$foreignObject, ...)
 #' @method BIC singleRforeign
 #' @importFrom utils methods
 #' @exportS3Method
-BIC.singleRforeign <- function(object, ...) BIC(object$foreignObject, ...)
+BIC.singleRforeign <- function(object, ...)
+  BIC(object$foreignObject, ...)
 
 #' @importClassesFrom VGAM vglm
 #' @importClassesFrom VGAM vgam
@@ -103,7 +137,8 @@ BIC.singleRforeign <- function(object, ...) BIC(object$foreignObject, ...)
 #' @importFrom stats logLik
 #' @method logLik singleRforeign
 #' @exportS3Method
-logLik.singleRforeign <- function(object, ...) logLik(object$foreignObject, ...)
+logLik.singleRforeign <- function(object, ...)
+  logLik(object$foreignObject, ...)
 
 #' @importClassesFrom VGAM vglm
 #' @importClassesFrom VGAM vgam
@@ -111,7 +146,8 @@ logLik.singleRforeign <- function(object, ...) logLik(object$foreignObject, ...)
 #' @importFrom stats coef
 #' @method coef singleRforeign
 #' @exportS3Method
-coef.singleRforeign <- function(object, ...) coef(object$foreignObject, ...)
+coef.singleRforeign <- function(object, ...)
+  coef(object$foreignObject, ...)
 
 #' @importClassesFrom VGAM vglm
 #' @importClassesFrom VGAM vgam
@@ -119,7 +155,8 @@ coef.singleRforeign <- function(object, ...) coef(object$foreignObject, ...)
 #' @importFrom VGAM Coef
 #' @method Coef singleRforeign
 #' @exportS3Method
-Coef.singleRforeign <- function(object, ...) Coef(object$foreignObject, ...)
+Coef.singleRforeign <- function(object, ...)
+  Coef(object$foreignObject, ...)
 
 #' @importClassesFrom VGAM vglm
 #' @importClassesFrom VGAM vgam
@@ -129,8 +166,13 @@ Coef.singleRforeign <- function(object, ...) Coef(object$foreignObject, ...)
 #' @method model.matrix singleRforeign
 #' @exportS3Method
 model.matrix.singleRforeign <- function(object, ...) {
-  stopifnot("No model.matrix method for foreign object or package needs to be loaded" =
-              length(suppressWarnings(intersect(methods(class = class(object$foreignObject)), methods("model.matrix")))) > 0)
+  stopifnot(
+    "No model.matrix method for foreign object or package needs to be loaded" =
+    length(suppressWarnings(intersect(
+      methods(class = class(object$foreignObject)),
+      methods("model.matrix")
+    ))) > 0
+  )
 
   model.matrix(object$foreignObject, ...)
 }
@@ -143,8 +185,13 @@ model.matrix.singleRforeign <- function(object, ...) {
 #' @method model.frame singleRforeign
 #' @exportS3Method
 model.frame.singleRforeign <- function(formula, ...) {
-  stopifnot("No model.frame method for foreign object or package needs to be loaded" =
-              length(suppressWarnings(intersect(methods(class = class(formula$foreignObject)), methods("model.frame")))) > 0)
+  stopifnot(
+    "No model.frame method for foreign object or package needs to be loaded" =
+    length(suppressWarnings(intersect(
+      methods(class = class(formula$foreignObject)),
+      methods("model.frame")
+    ))) > 0
+  )
 
   model.frame(formula$foreignObject, ...)
 }
@@ -157,8 +204,13 @@ model.frame.singleRforeign <- function(formula, ...) {
 #' @method fitted singleRforeign
 #' @exportS3Method
 fitted.singleRforeign <- function(object, ...) {
-  stopifnot("No fitted method for foreign object or package needs to be loaded" =
-            length(suppressWarnings(intersect(methods(class = class(object$foreignObject)), methods("fitted")))) > 0)
+  stopifnot(
+    "No fitted method for foreign object or package needs to be loaded" =
+    length(suppressWarnings(intersect(
+      methods(class = class(object$foreignObject)),
+      methods("fitted")
+    ))) > 0
+  )
 
   fitted(object$foreignObject, ...)
 }
@@ -169,7 +221,8 @@ fitted.singleRforeign <- function(object, ...) {
 #' @importFrom stats nobs
 #' @method nobs singleRforeign
 #' @exportS3Method
-nobs.singleRforeign <- function(object, ...) nobs(object$foreignObject, ...)
+nobs.singleRforeign <- function(object, ...)
+  nobs(object$foreignObject, ...)
 
 #' @importClassesFrom VGAM vglm
 #' @importClassesFrom VGAM vgam
@@ -179,8 +232,13 @@ nobs.singleRforeign <- function(object, ...) nobs(object$foreignObject, ...)
 #' @importFrom utils methods
 #' @exportS3Method
 df.residual.singleRforeign <- function(object, ...) {
-  stopifnot("No df.residual method for foreign object or package needs to be loaded" =
-              length(suppressWarnings(intersect(methods(class = class(object$foreignObject)), methods("df.residual")))) > 0)
+  stopifnot(
+    "No df.residual method for foreign object or package needs to be loaded" =
+    length(suppressWarnings(intersect(
+      methods(class = class(object$foreignObject)),
+      methods("df.residual")
+    ))) > 0
+  )
 
   df.residual(object$foreignObject, ...)
 }

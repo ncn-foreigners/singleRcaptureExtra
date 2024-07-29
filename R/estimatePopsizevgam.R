@@ -239,7 +239,8 @@ estimatePopsize.vgam <- function(formula,
       foreignObject  = formula,
       call           = match.call(),
       sizeObserved   = sizeObserved,
-      populationSize = POP
+      populationSize = POP,
+      derivFunc      = derivFunc
     ),
     class = c("singleRadditive", "singleRforeign", "singleRStaticCountData", "singleR")
   )

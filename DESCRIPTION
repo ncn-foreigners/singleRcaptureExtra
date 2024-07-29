@@ -1,11 +1,11 @@
 Package: singleRcaptureExtra
-Title: Extension of singleRcapture capabilities to other regression fitting packages
-Version: 0.0.0.9000
+Title: Extension of singleRcapture capabilities to other regression fitting packages.
+Version: 0.0.1
 Authors@R: 
     c(person(given = "Piotr",
              family = "Chlebicki",
              role = c("aut", "cre"),
-             email = "piochl@st.amu.edu.pl"))
+             email = "piotrek.pecet@gmail.com"))
 Description: A lightweight extention to singleRcapture package.
 License: MIT + file LICENSE
 Encoding: UTF-8

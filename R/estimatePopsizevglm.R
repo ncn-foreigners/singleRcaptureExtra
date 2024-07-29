@@ -87,16 +87,18 @@ estimatePopsize.vglm <- function(formula,
                 )
               )
 
-              ### TODO:: this is a terrible way of ordering, fix it !!!!
               as.vector(t(
                 cbind(dpobs1.deta, dlambda.deta) *
-                cbind(rep(0, NROW(eta)), (exp(lambda) - 1) / (exp(lambda) - lambda - 1) ^ 2)
+                cbind(
+                  rep(0, NROW(eta)),
+                  (exp(lambda) - 1) / (exp(lambda) - lambda - 1) ^ 2
+                )
               ))
             },
             "pospoisson" = function(eta) {
               links <- (strsplit(formula@family@blurb[c(3)], split = "\\(") |> unlist())[c(1)]
-              lambda <- eta2theta(
-                eta, "loglink",
+              lambda <- VGAM::eta2theta(
+                eta, links[1],
                 list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
                      short = TRUE, tag = FALSE)
               )
@@ -108,7 +110,7 @@ estimatePopsize.vglm <- function(formula,
                 )
               )
 
-              (exp(lambda) / (exp(lambda) - 1) ^ 2) * dlambda.deta
+              -dlambda.deta * exp(lambda) / (exp(lambda) - 1) ^ 2
             },
             "oipospoisson" = function(eta) {
               links <- (strsplit(formula@family@blurb[c(3, 5)], split = "\\(") |> unlist())[c(1,3)]
@@ -356,7 +358,8 @@ estimatePopsize.vglm <- function(formula,
       call           = match.call(),
       sizeObserved   = sizeObserved,
       populationSize = POP,
-      pacakgeInfo    = "VGAM::vglm"
+      pacakgeInfo    = "VGAM::vglm",
+      derivFunc      = derivFunc
     ),
     class = c("singleRforeign", "singleRStaticCountData", "singleR")
   )
