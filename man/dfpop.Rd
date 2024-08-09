@@ -4,26 +4,30 @@
 \alias{dfpop}
 \alias{dfpopsize.singleRadditive}
 \alias{dfpopsize.singleRforeign}
-\title{AA}
+\title{Leave one out diagnostic on population size}
 \usage{
 \method{dfpopsize}{singleRadditive}(model, data, cores = 1L, trace = FALSE, ...)
 
 \method{dfpopsize}{singleRforeign}(model, dfbeta = NULL, ...)
 }
 \arguments{
-\item{model}{a}
+\item{model}{object of \code{singleRforeign} class.}
 
-\item{cores}{a}
+\item{cores}{Number of processor cores to be used for computing the \code{dfbeta},
+any number greater than 1 activates code designed with doParallel, foreach
+and parallel packages. Note that for now using parallel computing makes
+tracing impossible so trace parameter is ignored in this case.}
 
-\item{trace}{asd}
+\item{trace}{logical value specifying whether to track the results.}
 
 \item{...}{b}
 
-\item{dfbeta}{a}
+\item{dfbeta}{if \code{dfbeta} was already obtained it is possible to pass
+them into function so that they need not be computed for the second time.}
 }
 \value{
 a
 }
 \description{
-AA
+Leave one out diagnostic on population size
 }

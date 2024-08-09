@@ -1,5 +1,5 @@
 Package: singleRcaptureExtra
-Title: Extension of singleRcapture capabilities to other regression fitting packages.
+Title: Extension of singleRcapture capabilities to other regression fitting packages
 Version: 0.0.1
 Authors@R: 
     c(person(given = "Piotr",

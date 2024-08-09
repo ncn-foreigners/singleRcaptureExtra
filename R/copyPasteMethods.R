@@ -63,8 +63,8 @@ dfbeta.singleRforeign <- function(model, ...) {
 #' @importFrom stats terms
 #' @method terms singleRforeign
 #' @exportS3Method
-terms.singleRforeign <- function(object, ...)
-  terms(model.frame(object), ...)
+terms.singleRforeign <- function(x, ...)
+  terms(model.frame(x), ...)
 
 #' @importClassesFrom VGAM vglm
 #' @importClassesFrom VGAM vgam

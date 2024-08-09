@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plot.singleRforeign}
 \alias{plot.singleRforeign}
-\title{Title}
+\title{Diagnostic plots for population size estimation.}
 \usage{
 \method{plot}{singleRforeign}(
   x,
@@ -14,21 +14,29 @@
 )
 }
 \arguments{
-\item{x}{A}
+\item{x}{object of \code{singleRforeign} class.}
 
-\item{plotType}{A}
+\item{plotType}{character parameter specifying type of plot to be made,
+possible options are
+\code{bootHist, marginal, rootogram, dfpopContr, dfpopBox, strata}
+and their full description may be found in
+\code{\link[singleRcapture:plot.singleRStaticCountData]{singleRcapture::plot.singleRStaticCountData()}}.}
 
-\item{confIntStrata}{A}
+\item{confIntStrata}{confidence interval type to use for strata plot.
+Currently supported values are \code{normal} and \code{logNormal}.}
 
-\item{histKernels}{A}
+\item{histKernels}{logical value indicating whether to add density lines to histogram.}
 
-\item{dfpop}{A}
+\item{dfpop}{if \code{\link[=dfpopsize.singleRforeign]{dfpopsize.singleRforeign()}} was already computed it may be
+supplied as a argument to this function in order to reduce the computational
+time.}
 
-\item{...}{A}
+\item{...}{additional arguments passed to plot functions, full description
+of which arguments work is present in \code{\link[singleRcapture:plot.singleRStaticCountData]{singleRcapture::plot.singleRStaticCountData()}}.}
 }
 \value{
-A
+No return value only the plot being made.
 }
 \description{
-Title
+Diagnostic plots for population size estimation.
 }

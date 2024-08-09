@@ -133,12 +133,16 @@ NULL
 #' @name marginals
 NULL
 
-#' AA
+#' Leave one out diagnostic on population size
 #'
-#' @param model a
-#' @param cores a
-#' @param trace asd
-#' @param dfbeta a
+#' @param model object of \code{singleRforeign} class.
+#' @param cores Number of processor cores to be used for computing the \code{dfbeta},
+#' any number greater than 1 activates code designed with doParallel, foreach
+#' and parallel packages. Note that for now using parallel computing makes
+#' tracing impossible so trace parameter is ignored in this case.
+#' @param trace logical value specifying whether to track the results.
+#' @param dfbeta if \code{dfbeta} was already obtained it is possible to pass
+#' them into function so that they need not be computed for the second time.
 #' @param ... b
 #'
 #' @return a

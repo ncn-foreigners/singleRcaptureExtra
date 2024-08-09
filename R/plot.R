@@ -1,13 +1,22 @@
-#' Title
+# TODO:: this is signle R capture only
+#' Diagnostic plots for population size estimation.
 #'
-#' @param x A
-#' @param plotType A
-#' @param confIntStrata A
-#' @param histKernels A
-#' @param dfpop A
-#' @param ... A
+#' @param x object of \code{singleRforeign} class.
+#' @param plotType character parameter specifying type of plot to be made,
+#' possible options are
+#' \code{bootHist, marginal, rootogram, dfpopContr, dfpopBox, strata}
+#' and their full description may be found in
+#' [singleRcapture::plot.singleRStaticCountData()].
+#' @param confIntStrata confidence interval type to use for strata plot.
+#' Currently supported values are \code{normal} and \code{logNormal}.
+#' @param histKernels logical value indicating whether to add density lines to histogram.
+#' @param dfpop if [dfpopsize.singleRforeign()] was already computed it may be
+#' supplied as a argument to this function in order to reduce the computational
+#' time.
+#' @param ... additional arguments passed to plot functions, full description
+#' of which arguments work is present in [singleRcapture::plot.singleRStaticCountData()].
 #'
-#' @return A
+#' @return No return value only the plot being made.
 #' @importFrom graphics abline barplot hist lines matplot legend boxplot panel.smooth axis text arrows par points
 #' @importFrom stats density dlnorm dnorm
 #' @export
@@ -33,13 +42,14 @@ plot.singleRforeign <- function(x,
 
   switch(plotType,
     marginal = {
+      # TODO:: this is signle R capture only
       M <- marginalFreqVglm(x);
       FF <- M$table;
       FF[names(M$y)] <- M$y;
       FF[setdiff(names(M$table), names(M$y))] <- 0;
       graphics::matplot(
         y = cbind(M$table, FF),
-        x = 0:max(x$y), type = "o",
+        x = 0:max(as.integer(names(M$y))), type = "o",
         col = 1:2, pch = 21:22, lty = 2,
         main = "Plot of observed and fitted marginal frequencies",
         ylab = "Frequency",
@@ -97,6 +107,7 @@ plot.singleRforeign <- function(x,
       }
     },
     rootogram = {
+      # TODO:: this is signle R capture only
       M <- marginalFreqVglm(x);
       FF <- M$table;
       FF[names(M$y)] <- M$y;
@@ -119,7 +130,7 @@ plot.singleRforeign <- function(x,
     },
     dfpopContr = {
       if (missing(dfpop)) dfpop <- dfpopsize(x, ...);
-      # TODO:: use predict method here
+      # TODO:: this is signle R capture only
       contr <- x$model$pointEst(
         pw = x$priorWeights,
         eta = x$linearPredictors,

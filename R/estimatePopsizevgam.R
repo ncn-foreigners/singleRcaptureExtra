@@ -46,8 +46,8 @@ estimatePopsize.vgam <- function(formula,
   numboot <- 500
 
   ### Get try-catch for that
-  tryCatch(
-    expr = {PW <- fittedvlm(formula, type.fitted = "prob0")},
+  PW <- tryCatch(
+    expr = {fittedvlm(formula, type.fitted = "prob0")},
     error = function(e) {
       if (formula@family@vfamily[1] == "oapospoisson") {
         links <- (strsplit(formula@family@blurb[c(5, 7)], split = "\\(") |> unlist())[c(1,3)]

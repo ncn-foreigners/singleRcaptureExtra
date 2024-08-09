@@ -68,19 +68,19 @@ marginalFreqVglm <- function(object,
     }
   )
 
-  eta <- predict(object$foreignObject)
+  eta <- object$foreignObject@predictors
   res <- apply(
     eta, 1,
     FUN = function(x) {probFun(
       x = range,
-      eta = x
+      eta = matrix(x, nrow = 1)
     )}
   )
   res <- rowSums(res)
   names(res) <- as.character(range)
 
   if(isTRUE(includezeros)) {
-    res <- c(object$populationSize$pointEstimate - length(eta), res)
+    res <- c(object$populationSize$pointEstimate - NROW(eta), res)
     names(res)[1] <- "0"
   }
 

@@ -13,6 +13,7 @@
 #' @return A
 #' @seealso [singleRcapture::stratifyPopsize()] [estimatePopsize()]
 #' @importFrom singleRcapture stratifyPopsize
+#' @importFrom stats contrasts
 #' @method stratifyPopsize singleRforeign
 #' @export
 stratifyPopsize.singleRforeign <- function(object,
@@ -45,7 +46,7 @@ stratifyPopsize.singleRforeign <- function(object,
       stratas, data = mf,
       contrasts.arg = lapply(
         subset(mf, select = sapply(mf, is.factor)), # this makes it so that all levels of factors are encoded
-        contrasts, contrasts = FALSE
+        stats::contrasts, contrasts = FALSE
       )
     )
     trm <- attr(mf, "terms")
@@ -74,6 +75,10 @@ stratifyPopsize.singleRforeign <- function(object,
 
     if (length(stratas[[1]]) != object$sizeObserved)
       stop("Elements of stratas object should have length equal to number of observed units.")
+
+    if (length(names(stratas)) != length(stratas)) {
+      names(stratas) <- 1:length(stratas)
+    }
 
   } else if (is.logical(stratas)) {
     if (length(stratas) != object$sizeObserved)
@@ -117,5 +122,12 @@ stratifyPopsize.singleRforeign <- function(object,
     stop(errorMessage)
   }
 
-  internalStratPop(object$foreignObject, stratas, alpha, cov, object$derivFunc, ...)
+  internalStratPop(
+    object$foreignObject,
+    stratas,
+    alpha,
+    cov,
+    object$derivFunc,
+    ...
+  )
 }

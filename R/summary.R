@@ -1,12 +1,21 @@
 #' @title AAA
 #' @description
-#' AA
+#' A summary method for \code{singleRforeign} class
 #' @details
-#' aa
+#' Computes summary statistics for population size estimation and calls
+#' summary on a foreign object. The results can be printed either as (default)
+#' \code{print(summary(object))} where both the summary of population size
+#' estimation and of the foreign object will be printed or alternatively the
+#' later statistics can be omitted in printing with the call
+#' \code{print(summary(object), summaryForeign = FALSE)}.
 #'
-#' @param object a
-#' @param popSizeEst a
-#' @param ... a
+#' @param object object of \code{singleRforeign} class
+#' @param popSizeEst object of \code{popSizeEstResults} class such as the ones
+#' created by [singleRcapture::redoPopEstimation()]. If not specified
+#' population size estimation results will be drawn from the \code{object}.
+#' results
+#' @param ... passed to \code{summary} method on foreign object provided
+#' on call to \code{estimatePopsize}.
 #'
 #' @importFrom stats sd
 #' @importClassesFrom VGAM vglm
