@@ -6,19 +6,24 @@
 \alias{dfpopsize.singleRforeign}
 \title{Leave one out diagnostic on population size}
 \usage{
-\method{dfpopsize}{singleRadditive}(model, data, cores = 1L, trace = FALSE, ...)
+\method{dfpopsize}{singleRadditive}(model, data = NULL, cores = 1L, trace = FALSE, ...)
 
 \method{dfpopsize}{singleRforeign}(model, dfbeta = NULL, ...)
 }
 \arguments{
 \item{model}{object of \code{singleRforeign} class.}
 
-\item{cores}{Number of processor cores to be used for computing the \code{dfbeta},
-any number greater than 1 activates code designed with doParallel, foreach
-and parallel packages. Note that for now using parallel computing makes
-tracing impossible so trace parameter is ignored in this case.}
+\item{data}{A \code{data.frame} provided at call to the fitting function. This is
+usually not needed since the function first tries to find this \code{data.frame}
+manually. This argument only needs to be provided when the original object was
+removed or renamed in the global environment.}
 
-\item{trace}{logical value specifying whether to track the results.}
+\item{cores}{Number of processor cores to be used for computing the population
+size estimates for additive models. Unfortunately for \code{VGAM} class
+we need to fit a new model ater removing each unit in the data.}
+
+\item{trace}{logical value specifying whether to track the results. Only
+applicable if a single core is used.}
 
 \item{...}{b}
 

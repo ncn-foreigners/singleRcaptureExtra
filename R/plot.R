@@ -1,4 +1,3 @@
-# TODO:: this is signle R capture only
 #' Diagnostic plots for population size estimation.
 #'
 #' @param x object of \code{singleRforeign} class.
@@ -42,8 +41,11 @@ plot.singleRforeign <- function(x,
 
   switch(plotType,
     marginal = {
-      # TODO:: this is signle R capture only
-      M <- marginalFreqVglm(x);
+      if (inherits(x$foreignObject, "zerotrunc")) {
+        M <- marginalFreqCountreg(x)
+      } else {
+        M <- marginalFreqVglm(x)
+      };
       FF <- M$table;
       FF[names(M$y)] <- M$y;
       FF[setdiff(names(M$table), names(M$y))] <- 0;
@@ -55,10 +57,16 @@ plot.singleRforeign <- function(x,
         ylab = "Frequency",
         xlab = "Counts",
         ...);
-      legend("topright",
-             legend = c(x$model$family,
-                        "Observed"),
-             col = 1:2, pch = 21:22)
+      legend(
+        "topright",
+        legend = c(
+        if (inherits(x$foreignObject, "zerotrunc")) {
+          x$foreignObject$dist
+        } else {
+          x$foreignObject@family@vfamily[1]
+        } , "Observed"),
+        col = 1:2, pch = 21:22
+      )
     },
     bootHist = {
       h <- graphics::hist(
@@ -72,19 +80,20 @@ plot.singleRforeign <- function(x,
         xxx <- density(x$populationSize$boot, kernel = "epanechnikov");
         graphics::lines(
           x = xxx$x,
-          y = dlnorm(
+          y = stats::dlnorm(
             x       = xxx$x,
             meanlog = log(mean(x$populationSize$boot) /
                             sqrt(1 + var(x$populationSize$boot) /
                                    mean(x$populationSize$boot) ^ 2)),
-            sdlog   = sqrt(log(1 + var(x$populationSize$boot) / mean(x$populationSize$boot) ^ 2))
+            sdlog   = sqrt(log(1 + var(x$populationSize$boot) /
+                                 mean(x$populationSize$boot) ^ 2))
           ) * length(x$populationSize$boot) * diff(h$breaks)[1],
           lty = 2,
           col = 8
         )
         graphics::lines(
           x = xxx$x,
-          y = dnorm(
+          y = stats::dnorm(
             x    = xxx$x,
             mean = mean(x$populationSize$boot),
             sd   = sd(x$populationSize$boot)
@@ -107,8 +116,11 @@ plot.singleRforeign <- function(x,
       }
     },
     rootogram = {
-      # TODO:: this is signle R capture only
-      M <- marginalFreqVglm(x);
+      if (inherits(x$foreignObject, "zerotrunc")) {
+        M <- marginalFreqCountreg(x)
+      } else {
+        M <- marginalFreqVglm(x)
+      };
       FF <- M$table;
       FF[names(M$y)] <- M$y;
       FF[setdiff(names(M$table), names(M$y))] <- 0;
@@ -120,22 +132,18 @@ plot.singleRforeign <- function(x,
         xlab = "captures",
         ylim = c(min(sqrt(M$table[-1]) - sqrt(FF)) - 1, max(sqrt(M$table[-1]) + 1)),
         ...);
-      graphics::lines(bp, sqrt(M$table[-1]),
-                      type = "o",
-                      pch = 19,
-                      lwd = 2,
-                      col = 2);
-      graphics::abline(h = 0,
-                       lty = 2)
+      graphics::lines(
+        bp, sqrt(M$table[-1]),
+        type = "o",
+        pch = 19,
+        lwd = 2,
+        col = 2
+      );
+      graphics::abline(h = 0, lty = 2)
     },
     dfpopContr = {
       if (missing(dfpop)) dfpop <- dfpopsize(x, ...);
-      # TODO:: this is signle R capture only
-      contr <- x$model$pointEst(
-        pw = x$priorWeights,
-        eta = x$linearPredictors,
-        contr = TRUE
-      );
+      contr <- getPw(x$foreignObject, ...);
       plot(x = dfpop, y = contr,
            main = paste0("Observation deletion effect on point estimate of",
                          "\npopulation size estimate vs observation contribution"),
@@ -154,40 +162,23 @@ plot.singleRforeign <- function(x,
       )
     },
     strata = {
-      stop("not yet done")
       if (missing(confIntStrata)) confIntStrata <- "logNormal"
-      #result <- singleRcapture::stratifyPopsize(x, ...)
-      result <- NULL
+      result <- stratifyPopsize(x, ...)
       est <- result[, 2]
       obs <- result[, 1]
-      nm <- result[, 9]
+      nm  <- result[, 9]
       if (confIntStrata == "logNormal") cnf <- result[, 7:8]
       else cnf <- result[, 5:6]
-      # OY ####
-      # plot(x = 1:NROW(result), est,
-      #      ylim = range(cnf),
-      #      xlab = "", ylab="Sub population size estimate",
-      #      main="Confidence intervals and point estimates for specified sub populations\nObserved population sizes are presented as navy coloured points",
-      #      xaxt = "n", pch = 19
-      # )
-      # points(x = 1:NROW(result), obs, col = "navy", pch = 19)
-      # axis(side = 1, at = 1:NROW(result), labels = FALSE)
-      # text(x = 1:NROW(result), y=graphics::par("usr", no.readonly = TRUE)[3] - (range(cnf)[2] - range(cnf)[1]) / 20, adj = 1,
-      #      nm, srt = 30, cex = .75,
-      #      xpd = TRUE)
-      # arrows(1:NROW(result), cnf[ ,1], 1:NROW(result), cnf[ ,2],
-      #        length=0.05, angle=90, code=3)
-      # OX ####
-
-      tilt <- 0 # maybe add to parameters??
-      plot(y = 1:NROW(result), x = est,
-           xlim = range(cnf),
-           xlab = "Sub population size estimate", ylab="",
-           main = paste0(
-             "Confidence intervals and point estimates for specified sub populations\n",
-             "Observed population sizes are presented as navy coloured points"
-           ),
-           yaxt = "n", pch = 19
+      tilt <- 0
+      plot(
+        y = 1:NROW(result), x = est,
+        xlim = range(cnf),
+        xlab = "Sub population size estimate", ylab="",
+        main = paste0(
+          "Confidence intervals and point estimates for specified sub populations\n",
+          "Observed population sizes are presented as navy coloured points"
+        ),
+        yaxt = "n", pch = 19
       )
       points(y = 1:NROW(result), x = obs, col = "navy", pch = 19)
       axis(side = 2, at = 1:NROW(result), labels = FALSE)
@@ -200,11 +191,13 @@ plot.singleRforeign <- function(x,
         cex = .6,
         xpd = TRUE
       )
-      arrows(cnf[ ,1], 1:NROW(result),
-             cnf[ ,2], 1:NROW(result),
-             length = 0.05,
-             angle  = 90,
-             code   = 3)
+      arrows(
+        cnf[ ,1], 1:NROW(result),
+        cnf[ ,2], 1:NROW(result),
+        length = 0.05,
+        angle  = 90,
+        code   = 3
+      )
     }
   )
 

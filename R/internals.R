@@ -365,3 +365,57 @@ internalStratPop.zerotrunc <- function(object, stratas, alpha, cov, derivFunc, .
 
   result
 }
+
+
+getPw <- function(object, ...)
+  UseMethod("getPw")
+
+
+getPw.zerotrunc <- function(object, ...) {
+  family <- switch (object$dist,
+    "poisson"   = singleRcapture::ztpoisson(),
+    "negbin"    = singleRcapture::ztnegbin(alphaLink = "neglog"),
+    "geometric" = singleRcapture::ztgeom()
+  )
+  eta <- cbind(as.numeric(log(predict(object, type = "count"))))
+
+  family$pointEst(
+    pw = 1,
+    eta = if (object$dist == "negbin") {
+      cbind(eta, log(object$theta))
+    } else {
+      cbind(eta)
+    },
+    contr = TRUE
+  )
+}
+
+getPw.vglm <- function(object, ...) {
+  PW <- tryCatch(
+    expr = {fittedvlm(object, type.fitted = "prob0")},
+    error = function(e) {
+      if (object@family@vfamily[1] == "oapospoisson") {
+        links <- (strsplit(object@family@blurb[c(5, 7)], split = "\\(") |> unlist())[c(1,3)]
+        lambda <- VGAM::eta2theta(
+          object@predictors[, c(FALSE, TRUE), drop = FALSE], links[2],
+          list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+               short = TRUE, tag = FALSE)
+        )
+
+        return(exp(-lambda) / (1 - lambda * exp(-lambda)))
+      } else if (object@family@vfamily[1] == "oipospoisson") {
+        links <- (strsplit(object@family@blurb[c(3, 5)], split = "\\(") |> unlist())[c(1,3)]
+        lambda <- VGAM::eta2theta(
+          object@predictors[, c(FALSE, TRUE), drop = FALSE], links[2],
+          list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+               short = TRUE, tag = FALSE)
+        )
+        return(exp(-lambda))
+      } else {
+        stop("estimatePopsize.vgam method is only for objects with family slots with possibility of type.fitted = prob0 (and a few select ones)")
+      }
+    }
+  )
+
+  (1 - PW) ^ -1
+}

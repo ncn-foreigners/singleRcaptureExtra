@@ -1,16 +1,17 @@
 #' @importFrom singleRcapture dfpopsize
+#' @importFrom VGAM dgaitdpois dgaitdnbinom
 #' @method dfpopsize singleRadditive
 #' @rdname dfpop
 #' @export
 dfpopsize.singleRadditive <- function(model,
-                                      data,
+                                      data = NULL,
                                       cores = 1L,
                                       trace = FALSE,
                                       ...) {
   # add cores
-  if (missing(data)) {
+  if (is.null(data)) {
     tryCatch(
-      mf <- eval(model$foreignObject@call$data),
+      mf <- eval(model$foreignObject@call$data, envir = parent.frame()),
       error = function(e) {
         stop(paste0(
           "Call to data object in dfpopsize failed, ",
@@ -33,13 +34,14 @@ dfpopsize.singleRadditive <- function(model,
         k = 1:NROW(mf),
         .combine = c,
         ## TODO:: figure out something that requires less maintenance
-        .packages = c("VGAM", "singleRcapture"),
-        .export = c("estimatePopsize.vgam")
+        .packages = c("VGAM", "singleRcapture", "VGAMdata"),
+        .export = c("estimatePopsize.vgam", "vgam",
+                    "dgaitdpois", "dgaitdnbinom")
       ),
       ex = {
         dd <- mf[-k, , drop = FALSE]
         cll$data <- as.symbol("dd")
-        est <- eval(cll, envir = environment())
+        est <- eval(cll)
         estimatePopsize(est)$populationSize$pointEstimate
       }
     )
