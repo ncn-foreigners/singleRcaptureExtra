@@ -149,6 +149,7 @@ NULL
 #' removed or renamed in the global environment.
 #' @param ... b
 #'
-#' @return a
+#' @return A numeric vector with the differences between the estimated population
+#' size and the estimated population size after removing a unit.
 #' @name dfpop
 NULL

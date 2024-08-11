@@ -18,7 +18,7 @@ estimatePopsize.vglm <- function(formula,
   sizeObserved <- nobs(formula)
   signlevel <- control$alpha
 
-  ### TODO:: This is terrible, don't use tryCatch if you don't have to
+  ### TODO:: switch to internal function
   PW <- tryCatch(
     expr = {fittedvlm(formula, type.fitted = "prob0")},
     error = function(e) {

@@ -18,15 +18,16 @@ estimatePopsize.vgam <- function(formula,
                                  subset   = NULL,
                                  naAction = NULL,
                                  popVar   = c("analytic",
-                                              "bootstrap"),
-                                 control = NULL,
+                                              "bootstrap",
+                                              "no"),
+                                 control = controlEstPopVgam(),
                                  derivFunc = NULL,
                                  ...) {
   if (missing(popVar)) popVar <- "analytic"
 
   if (popVar == "bootstrap" && is.null(control$data)) {
-    tryCatch(
-      expr = {control$data <- eval(formula@call$data)},
+    control$data <- tryCatch(
+      expr = {eval(formula@call$data, envir = parent.frame())},
       error = function (e) {
         stop("Bootstrap with vgam class needs a data argument in control.vgam to work. An attempt was made to manually evaluate data slot from vgam class object call but it failed.")
       }
@@ -38,46 +39,18 @@ estimatePopsize.vgam <- function(formula,
     }
   }
   sizeObserved <- nobs(formula)
-  # signlevel <- control$alpha
-  # trcount <- control$trcount
-  # numboot <- control$B
-  signlevel <- .05
-  trcount <- 0
-  numboot <- 500
+  signlevel <- control$alpha
+  trcount <- control$trcount
+  numboot <- control$B
 
-  ### Get try-catch for that
-  PW <- tryCatch(
-    expr = {fittedvlm(formula, type.fitted = "prob0")},
-    error = function(e) {
-      if (formula@family@vfamily[1] == "oapospoisson") {
-        links <- (strsplit(formula@family@blurb[c(5, 7)], split = "\\(") |> unlist())[c(1,3)]
-        lambda <- VGAM::eta2theta(
-          formula@predictors[, c(FALSE, TRUE), drop = FALSE], links[2],
-          list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
-               short = TRUE, tag = FALSE)
-        )
-
-        return(exp(-lambda) / (1 - lambda * exp(-lambda)))
-      } else if (formula@family@vfamily[1] == "oipospoisson") {
-        links <- (strsplit(formula@family@blurb[c(3, 5)], split = "\\(") |> unlist())[c(1,3)]
-        lambda <- VGAM::eta2theta(
-          formula@predictors[, c(FALSE, TRUE), drop = FALSE], links[2],
-          list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
-               short = TRUE, tag = FALSE)
-        )
-        return(exp(-lambda))
-      } else {
-        stop("estimatePopsize.vgam method is only for objects with family slots with possibility of type.fitted = prob0 (and a few select ones)")
-      }
-    }
-  )
+  PW <- getPw(object = formula)
   wg <- formula@prior.weights
   if (is.null(wg) | !length(wg)) wg <- rep(1, sizeObserved)
 
   POP <- switch (
     popVar,
     "analytic" = {
-      N <- sum(wg / (1 - PW))
+      N <- sum(wg * PW)
       if (is.null(derivFunc)) {
         if (formula@family@vfamily[1] %in% c("oapoisson", "pospoisson",
                                              "oipospoisson", "posnegbinomial",
@@ -201,7 +174,7 @@ estimatePopsize.vgam <- function(formula,
 
       dd <- t(rep(wg, formula@family@infos()$M1) * derivFunc(formula@predictors)) %*% model.matrix(formula, type = "vlm")
 
-      variation <- sum(wg * PW / (1 - PW)^2)
+      variation <- sum(wg * (1 - PW ^ -1) * PW ^ 2)
       variation <- variation + dd %*% vcov(formula) %*% t(dd)
 
       sc <- qnorm(p = 1 - signlevel / 2)
@@ -226,11 +199,151 @@ estimatePopsize.vgam <- function(formula,
         class = "popSizeEstResults"
       )},
     "bootstrap" = {
-      N <- sum(wg / (1 - PW))
-      TT <- bootVGAM(formula, B = 500, trace = FALSE,
-                     N = N, visT = TRUE, bootType = "nonparametric")
-      print(summary(TT))
-      stop("abc")
+      N <- sum(wg * PW)
+
+      formula@extra$singleRcaptureSimulate <- switch(formula@family@vfamily[1],
+        "oapospoisson" = function(n, eta, links) {
+          lambda <- VGAM::eta2theta(
+            eta[, c(FALSE, TRUE), drop = FALSE], links[2],
+            list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+                 short = TRUE, tag = FALSE)
+          )
+          pobs1 <- VGAM::eta2theta(
+            eta[, !c(FALSE, TRUE), drop = FALSE], links[1],
+            list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+                 short = TRUE, tag = FALSE)
+          )
+          singleRcapture::ztHurdlepoisson(lambdaLink = "log",
+                          piLink = "logit")$simulate(
+            n = n, lower = -1,
+            eta = cbind(log(lambda),
+                        VGAM::logitlink(pobs1))
+          )
+        },
+        "pospoisson" = function(n, eta, links) {
+          lambda <- VGAM::eta2theta(
+            eta, links,
+            list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+                 short = TRUE, tag = FALSE)
+          )
+          stats::rpois(n = n, lambda = lambda)
+        },
+        "oipospoisson" = function(n, eta, links) {
+          lambda <- VGAM::eta2theta(
+            eta[, c(FALSE, TRUE), drop = FALSE], links[2],
+            list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+                 short = TRUE, tag = FALSE)
+          )
+          pstr1 <- VGAM::eta2theta(
+            eta[, !c(FALSE, TRUE), drop = FALSE], links[1],
+            list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+                 short = TRUE, tag = FALSE)
+          )
+          singleRcapture::ztoipoisson(lambdaLink = "log",
+                          omegaLink = "logit")$simulate(
+            n = n, lower = -1,
+            eta = cbind(log(lambda),
+                        VGAM::logitlink(pstr1))
+          )
+        },
+        "posnegbinomial" = function(n, eta, links) {
+          lambda <- VGAM::eta2theta(
+            eta[, !c(FALSE, TRUE), drop = FALSE], links[1],
+            list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+                 short = TRUE, tag = FALSE)
+          )
+          size <- VGAM::eta2theta(
+            eta[, c(FALSE, TRUE), drop = FALSE], links[2],
+            list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+                 short = TRUE, tag = FALSE)
+          )
+          stats::rnbinom(n = n, size = size, mu = lambda)
+        }
+      )
+
+      if (control$cores == 1) {
+        strappedStatistic <- bootVGAM(
+          formula,
+          B = control$B,
+          trace = control$traceBootstrapSize,
+          N = N,
+          visT = control$bootstrapVisualTrace,
+          bootType = control$bootType,
+          data = control$data
+        )
+      } else {
+        strappedStatistic <- multiCoreBootVGAM(
+          formula,
+          B = control$B,
+          trace = control$traceBootstrapSize,
+          N = N,
+          visT = control$bootstrapVisualTrace,
+          bootType = control$bootType,
+          cores = control$cores
+        )
+      }
+
+      if (N < stats::quantile(strappedStatistic, .05)) {
+        warning("bootstrap statistics unusually high, try higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)\n")
+      } else if (N > stats::quantile(strappedStatistic, .95)) {
+        warning("bootstrap statistics unusually low, try higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)\n")
+      }
+      if (max(strappedStatistic) > N ^ 1.5) {
+        warning("Outlier(s) in statistics from bootstrap sampling detected, consider higher maxiter/lower epsilon for fitting bootstrap samples (bootstrapFitcontrol)\n")
+      }
+
+      variation <- stats::var(strappedStatistic)
+
+
+      if (!is.finite(variation))
+        stop("Computed variance is infinite/NaN/NULL")
+
+      sd <- sqrt(variation)
+      if (control$sd == "normalMVUE") {
+        sd <- sd / (sqrt(2 / (sizeObserved - 1)) *
+              exp(lgamma(sizeObserved / 2) - lgamma((sizeObserved- 1) / 2)))
+      }
+
+      if (control$confType == "percentilic") {
+        confidenceInterval <- stats::quantile(strappedStatistic,
+                                              c(signlevel / 2,
+                                                1 - signlevel / 2))
+        names(confidenceInterval) <- c("lowerBound", "upperBound")
+      } else if (control$confType == "normal") {
+        G <- exp(sc * sqrt(log(1 + variation / ((N - sizeObserved) ^ 2))))
+
+        confidenceInterval <- data.frame(t(data.frame(
+          "normal" = c(lowerBound = max(N - sc * sd,
+                                        sizeObserved),
+                       upperBound = N + sc * sd),
+          "logNormal" = c(lowerBound = max(sizeObserved + (N - sizeObserved) / G,
+                                           sizeObserved),
+                          upperBound = sizeObserved + (N - sizeObserved) * G)
+        )))
+      } else if (control$confType == "basic") {
+        confidenceInterval <- 2 * N - stats::quantile(strappedStatistic,
+                                                      c(1 - signlevel / 2,
+                                                        signlevel / 2))
+        names(confidenceInterval) <- c("lowerBound", "upperBound")
+      }
+
+
+      structure(
+        list(
+          pointEstimate = N,
+          variance = variation,
+          confidenceInterval = confidenceInterval,
+          boot = if (control$keepbootStat) strappedStatistic else NULL,
+          control = control
+        ),
+        class = "popSizeEstResults"
+      )
+    },
+    "no" = {
+      N <- sum(wg * PW)
+      structure(list(
+        pointEstimate = N
+      ), class = "popSizeEstResults")
     }
   )
 

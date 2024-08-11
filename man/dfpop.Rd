@@ -31,7 +31,8 @@ applicable if a single core is used.}
 them into function so that they need not be computed for the second time.}
 }
 \value{
-a
+A numeric vector with the differences between the estimated population
+size and the estimated population size after removing a unit.
 }
 \description{
 Leave one out diagnostic on population size

@@ -1,5 +1,4 @@
-# Add multicore
-#' @importFrom VGAM vgam.fit
+#' @importFrom VGAM vgam
 bootVGAM <- function(object,
                      B = 500,
                      trace = FALSE,
@@ -9,8 +8,6 @@ bootVGAM <- function(object,
                                   "nonparametric"),
                      data = NULL,
                      ...) {
-  stop("Doesn't work yet")
-  # data here
   if (visT) {
     plot(
       1, type = "n",
@@ -21,59 +18,137 @@ bootVGAM <- function(object,
       xlim = c(0, B + 1), ylim = c(0, 2 * N)
     )
   }
+  wt <- object@prior.weights
+  n  <- nobs(object)
+  if (length(wt) != n) {
+    wt <- rep(1, n)
+  }
+  cll <- object@call
+  strappedStatistic <- numeric(B)
+
+  eta <- object@predictors
+
+  # pre actions for all types of bootstrap
+  cll$weights <- as.symbol("wtStrap")
+  cll$data <- as.symbol("mf")
+  cll$etastart <- as.symbol("etaStrap")
+
+  if (!is.null(cll$offset)) {
+    cll$offset <- as.symbol("offsetStrap")
+    offset <- object@offset
+  }
+
+  if (bootType == "parametric") {
+    y <- as.integer(model.response(model.frame(object)))
+
+    # getting links
+    links <- getLinksBlurb(object@family@blurb)
+    # getting contribution
+    contr <- getPw(object)
+  }
 
   k <- 1
   while (k <= B) {
-    strap <- switch (
-      bootType,
-      "nonparametric" = sample.int(replace = TRUE, n = n)
+    strap <- switch (bootType,
+      "nonparametric" = {
+        strap <- sample.int(replace = TRUE, n = n)
+        mf  <- data[strap, , drop = FALSE]
+        wtStrap <- as.numeric(wt[strap])
+        etaStrap <- eta[strap, , drop = FALSE]
+
+        if (!is.null(cll$offset)) {
+          offsetStrap <- offset[strap, , drop = FALSE]
+        }
+      },
+      "semiparametric" = {
+        strap <- sum(rbinom(size = 1, n = N, prob = n / N))
+        strap <- sample.int(replace = TRUE, n = n, size = strap)
+
+        mf  <- data[strap, , drop = FALSE]
+        wtStrap <- as.numeric(wt[strap])
+        etaStrap <- eta[strap, , drop = FALSE]
+
+        if (!is.null(cll$offset)) {
+          offsetStrap <- offset[strap, , drop = FALSE]
+        }
+      },
+      "parametric" = {
+        nn <- floor(N) + stats::rbinom(n = 1, size = 1, prob = N - floor(N))
+        strap <- sample.int(replace = TRUE, n = length(y),
+                            size = nn, prob = wt * contr)
+
+        wtStrap <- as.numeric(wt[strap])
+        etaStrap <- eta[as.numeric(strap), , drop = FALSE]
+        mf <- data[strap, , drop = FALSE]
+
+        if (!is.null(cll$offset)) {
+          offsetStrap  <- offset[strap, , drop = FALSE]
+        }
+
+        yStrap <- object@extra$singleRcaptureSimulate(
+          nn, eta = etaStrap + if (!is.null(cll$offset)) offset else 0,
+          links = links
+        )
+
+        cond <- yStrap > 0
+
+        yStrap   <- yStrap[cond]
+        wtStrap  <- wtStrap[cond]
+        etaStrap <- etaStrap[cond, , drop = FALSE]
+        mf <- mf[cond, , drop = FALSE]
+
+        if (!is.null(cll$offset)) {
+          offsetStrap <- offsetStrap[cond, , drop = FALSE]
+        }
+
+        mf[, as.character(cll$formula[[2]])] <- yStrap
+      }
     )
 
+    est <- NULL
     try(
-      theta <- vgam(
-        # todo
+      suppressWarnings(
+        est <- eval(cll, envir = environment())
       ),
-      silent = FALSE
+      silent = TRUE
     )
 
     k <- k + 1
-
-    if (is.null(theta)) {
+    #trace <- TRUE
+    if (is.null(est)) {
       if (isTRUE(trace)) cat("\n")
       k <- k - 1
     } else {
-      if (isTRUE(trace)) {print(summary(theta$predictors))}
+      strappedStatistic[k - 1] <- sum(wtStrap * getPw(est))
 
-      # change to values from bootstrap
-      if (object@family@vfamily[1] == "oapospoisson") {
-        links <- (strsplit(object@family@blurb[c(5, 7)], split = "\\(") |> unlist())[c(1,3)]
-        lambda <- VGAM::eta2theta(
-          theta$predictors[, c(FALSE, TRUE), drop = FALSE], links[2],
-          list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
-               short = TRUE, tag = FALSE)
-        )
-
-        est <- sum(wt / (1 - exp(-lambda) / (1 - lambda * exp(-lambda))))
-      } else if (object@family@vfamily[1] == "oipospoisson") {
-        links <- (strsplit(object@family@blurb[c(3, 5)], split = "\\(") |> unlist())[c(1,3)]
-        lambda <- VGAM::eta2theta(
-          theta$predictors[, c(FALSE, TRUE), drop = FALSE], links[2],
-          list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
-               short = TRUE, tag = FALSE)
-        )
-        est <- sum(wt / (1 - exp(-lambda)))
-      } else {
-        est <- sum(wt / (1 - theta$fitted.values))
+      if (visT) graphics::points(k - 1, strappedStatistic[k - 1], pch = 1)
+      if (isTRUE(trace)) {
+        cat("Bootstrap iteration nr. ", k - 1,
+            "\nEstimated population size: ", strappedStatistic[k - 1],
+            ", Observed population: ", nrow(etaStrap),
+            "\nSummary of additive predictors:",
+            "\n", sep = "")
+        print(summary(est@predictors))
+        cat("-----------------------\n")
       }
-
-      if (visT) graphics::points(k - 1, est, pch = 1)
-      print(k)
-      if (isTRUE(trace)) cat(" Estimated population size: ", est,"\n",sep = "")
       #if (visT) graphics::points(k - 1, est, pch = 1)
-
-      strappedStatistic[k - 1] <- est
     }
   }
 
   strappedStatistic
+}
+
+
+multiCoreBootVGAM <- function(object,
+                              B = 500,
+                              trace = FALSE,
+                              N, visT = FALSE,
+                              bootType = c("parametric",
+                                           "semiparametric",
+                                           "nonparametric"),
+                              data = NULL,
+                              cores,
+                              ...) {
+  #TODO
+  0
 }

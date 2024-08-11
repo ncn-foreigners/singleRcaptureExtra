@@ -39,6 +39,7 @@ dfpopsize.singleRadditive <- function(model,
                     "dgaitdpois", "dgaitdnbinom")
       ),
       ex = {
+        # weights???????
         dd <- mf[-k, , drop = FALSE]
         cll$data <- as.symbol("dd")
         est <- eval(cll)

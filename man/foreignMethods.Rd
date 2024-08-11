@@ -21,8 +21,8 @@
   formula,
   subset = NULL,
   naAction = NULL,
-  popVar = c("analytic", "bootstrap"),
-  control = NULL,
+  popVar = c("analytic", "bootstrap", "no"),
+  control = controlEstPopVgam(),
   derivFunc = NULL,
   ...
 )
