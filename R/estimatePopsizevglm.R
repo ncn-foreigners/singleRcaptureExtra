@@ -18,39 +18,14 @@ estimatePopsize.vglm <- function(formula,
   sizeObserved <- nobs(formula)
   signlevel <- control$alpha
 
-  ### TODO:: switch to internal function
-  PW <- tryCatch(
-    expr = {fittedvlm(formula, type.fitted = "prob0")},
-    error = function(e) {
-      if (formula@family@vfamily[1] == "oapospoisson") {
-        links <- (strsplit(formula@family@blurb[c(5, 7)], split = "\\(") |> unlist())[c(1,3)]
-        lambda <- VGAM::eta2theta(
-          formula@predictors[, c(FALSE, TRUE), drop = FALSE], links[2],
-          list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
-               short = TRUE, tag = FALSE)
-        )
-
-        return(exp(-lambda) / (1 - lambda * exp(-lambda)))
-      } else if (formula@family@vfamily[1] == "oipospoisson") {
-        links <- (strsplit(formula@family@blurb[c(3, 5)], split = "\\(") |> unlist())[c(1,3)]
-        lambda <- VGAM::eta2theta(
-          formula@predictors[, c(FALSE, TRUE), drop = FALSE], links[2],
-          list(theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
-               short = TRUE, tag = FALSE)
-        )
-        return(exp(-lambda))
-      } else {
-        stop("estimatePopsize.vglm method is only for objects with family slots with possibility of type.fitted = prob0 (and a few select ones)")
-      }
-    }
-  )
+  PW <- getPw(object = formula)
 
   wg <- formula@prior.weights
   if (is.null(wg) | !length(wg)) wg <- rep(1, sizeObserved)
 
   POP <- switch (popVar,
     "analytic" = {
-      N <- sum(wg / (1 - PW))
+      N <- sum(wg * PW)
       if (is.null(derivFunc)) {
         if (formula@family@vfamily[1] %in% c("oapospoisson", "pospoisson",
                                              "oipospoisson", "posnegbinomial")) {
@@ -128,8 +103,12 @@ estimatePopsize.vglm <- function(formula,
                   short = TRUE, tag = FALSE
                 )
               )
+              ## |> t() |> as.numeric()
 
-              as.vector(t(cbind(rep(0, NROW(eta)), (exp(lambda) / (exp(lambda) - 1) ^ 2) * dlambda.deta)))
+              as.numeric(t(cbind(
+                dlambda.deta * exp(lambda) / (exp(lambda) - 1) ^ 2,
+                rep(0, NROW(eta))
+              )))
             },
             "posnegbinomial" = function(eta) {
               links <- (strsplit(formula@family@blurb[c(3,5)], split = "\\(") |> unlist())[c(1,3)]
@@ -177,10 +156,13 @@ estimatePopsize.vglm <- function(formula,
       }
 
       ### TODO:: vcov for oa/oi pospoisson is different in singleRcapture
-      dd <- t(rep(wg, formula@family@infos()$M1) * derivFunc(formula@predictors)) %*% model.matrix(formula, type = "vlm")
+      ### someone misscalculated derivative, maybe VGAM developer?
+      ### Judging by the results of the simulation its the VGAM developer
+      dd <- t(rep(wg, formula@family@infos()$M1) * derivFunc(formula@predictors)) %*%
+        model.matrix(formula, type = "vlm")
       #print(dd)
 
-      variation <- sum(wg * PW / (1 - PW)^2)
+      variation <- sum(wg * (1 - PW ^ -1) * PW ^ 2)
       vc <- vcov(formula)
 
       #print(dd %*% vc %*% t(dd))
@@ -209,7 +191,7 @@ estimatePopsize.vglm <- function(formula,
         class = "popSizeEstResults"
       )},
     "bootstrap" = {
-      N <- wg / (1 - PW)
+      N <- wg * PW
 
       # Asign sampling functions for each distribution
       formula@extra$singleRcaptureSimulate <- switch(formula@family@vfamily[1],

@@ -279,7 +279,8 @@ estimatePopsize.vgam <- function(formula,
           N = N,
           visT = control$bootstrapVisualTrace,
           bootType = control$bootType,
-          cores = control$cores
+          cores = control$cores,
+          data = control$data
         )
       }
 
