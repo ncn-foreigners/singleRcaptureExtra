@@ -25,6 +25,7 @@ library(VGAM)
 #> Loading required package: splines
 library(singleRcaptureExtra)
 #> Loading required package: singleRcapture
+#> Warning: package 'singleRcapture' was built under R version 4.3.3
 set.seed(123)
 x <- rnorm(n = 1000)
 y <- rpois(n = 1000, lambda = exp(-1 + cos(x)))
@@ -51,6 +52,27 @@ summary(estimatePopsize(additiveModel))
 #>           lowerBound upperBound
 #> normal      45.77849   56.93691
 #> logNormal   45.26860   56.21660
+#> 
+#> -------------------------------
+#> -- Summary of foreign object --
+#> -------------------------------
+#> 
+#> Call:
+#> vgam(formula = y ~ s(x, df = 3), family = pospoisson(), data = data)
+#> 
+#> Name of additive predictor: loglink(lambda) 
+#> 
+#> Dispersion Parameter for pospoisson family:   1
+#> 
+#> Log-likelihood: -438.9821 on 503.424 degrees of freedom
+#> 
+#> Number of Fisher scoring iterations:  7 
+#> 
+#> DF for Terms and Approximate Chi-squares for Nonparametric Effects
+#> 
+#>              Df Npar Df Npar Chisq     P(Chi)
+#> (Intercept)   1                              
+#> s(x, df = 3)  1     1.6    18.1147 6.0695e-05
 ```
 
 We see that `1000` is well with confidence intervals and that estimates
@@ -91,7 +113,29 @@ summary(singleRm1)
 #>   728.2672  1117.9471 
 #> 95% CI for the share of observed population:
 #> lowerBound upperBound 
-#>   31.84408   48.88316
+#>   31.84408   48.88316 
+#> 
+#> -------------------------------
+#> -- Summary of foreign object --
+#> -------------------------------
+#> 
+#> Call:
+#> vglm(formula = y ~ x, family = pospoisson(), data = data)
+#> 
+#> Coefficients: 
+#>             Estimate Std. Error z value Pr(>|z|)    
+#> (Intercept) -0.82233    0.11079  -7.423 1.15e-13 ***
+#> x            0.91564    0.06048  15.139  < 2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Name of linear predictor: loglink(lambda) 
+#> 
+#> Log-likelihood: -336.4192 on 354 degrees of freedom
+#> 
+#> Number of Fisher scoring iterations: 5 
+#> 
+#> No Hauck-Donner effect found in any of the estimates
 ```
 
 The `plots` method that is available for native `singleRcapture` object
@@ -108,15 +152,17 @@ Diagnostics from `singleRcapture` are also available:
 
 ``` r
 summary(marginalFreqVglm(singleRm1))
+#> Warning in summary.singleRmargin(marginalFreqVglm(singleRm1)): The argument
+#> dropl5 should be a 1 length character vector
 #> Test for Goodness of fit of a regression model:
 #> 
-#>                  Test statistics df  P(>X^2)
-#> Chi-squared test         1792.40  6  0.0e+00
-#> G-test                    949.01  6 9.5e-202
+#>                  Test statistics df P(>X^2)
+#> Chi-squared test            0.93  6    0.99
+#> G-test                     -1.65  6    1.00
 #> 
 #> -------------------------------------------------------------- 
 #> Cells with fitted frequencies of < 5 have been dropped 
-#> Names of cells used in calculating test(s) statistic: 1 2 3 4 5 6 7 8
+#> Names of cells used in calculating test(s) statistic: 1 2 3 4 5
 ```
 
 Utilising popular `countreg` package (compare with `singleRcapture`):
@@ -241,4 +287,4 @@ summary(model)
 ## Funding
 
 Work on this package is supported by the the National Science Center,
-OPUS 22 grant no. 2020/39/B/HS4/00941.
+OPUS 20 grant no. 2020/39/B/HS4/00941.
